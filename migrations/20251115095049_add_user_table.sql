@@ -4,7 +4,6 @@ CREATE TABLE users (
     email TEXT UNIQUE,
     username TEXT UNIQUE,
     pw_hash TEXT,
-    salt TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 
