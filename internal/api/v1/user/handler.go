@@ -32,9 +32,10 @@ func (h *Handler) Login(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	err := h.service.AuthenticateUser(c.Request.Context(), &payload)
+	token, err := h.service.AuthenticateUser(c.Request.Context(), &payload)
 	if err != nil {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(200, gin.H{"token": token})
 }

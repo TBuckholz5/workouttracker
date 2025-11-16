@@ -7,6 +7,7 @@ import (
 
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
 	db "github.com/TBuckholz5/workouttracker/internal/db/user"
+	"github.com/TBuckholz5/workouttracker/internal/jwt"
 	repo "github.com/TBuckholz5/workouttracker/internal/repository/user"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,18 +35,23 @@ func (s *Service) CreateUser(reqContext context.Context, userDto *dto.RegisterRe
 	return err
 }
 
-func (s *Service) AuthenticateUser(reqContext context.Context, loginDto *dto.LoginRequest) error {
+func (s *Service) AuthenticateUser(reqContext context.Context, loginDto *dto.LoginRequest) (string, error) {
 	user, err := s.repo.GetUserForUsername(reqContext, sql.NullString{String: loginDto.Username, Valid: true})
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PwHash.String), []byte(loginDto.Password))
 	if err != nil {
-		return fmt.Errorf("passwords do not match")
+		return "", fmt.Errorf("passwords do not match")
 	}
 
-	return err
+	token, err := jwt.GenerateJwt(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func hashPassword(password string) (string, error) {
