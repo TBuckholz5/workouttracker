@@ -7,8 +7,8 @@ package user
 
 import (
 	"context"
-	"database/sql"
-	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -18,22 +18,22 @@ RETURNING id, username, email, pw_hash, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Username sql.NullString
-	Email    sql.NullString
-	PwHash   sql.NullString
+	Username pgtype.Text
+	Email    pgtype.Text
+	PwHash   pgtype.Text
 }
 
 type CreateUserRow struct {
 	ID        int64
-	Username  sql.NullString
-	Email     sql.NullString
-	PwHash    sql.NullString
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Username  pgtype.Text
+	Email     pgtype.Text
+	PwHash    pgtype.Text
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.PwHash)
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email, arg.PwHash)
 	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
@@ -54,15 +54,15 @@ WHERE username = $1
 
 type GetUserByUsernameRow struct {
 	ID        int64
-	Username  sql.NullString
-	Email     sql.NullString
-	PwHash    sql.NullString
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Username  pgtype.Text
+	Email     pgtype.Text
+	PwHash    pgtype.Text
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 }
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username sql.NullString) (GetUserByUsernameRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+func (q *Queries) GetUserByUsername(ctx context.Context, username pgtype.Text) (GetUserByUsernameRow, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
 	var i GetUserByUsernameRow
 	err := row.Scan(
 		&i.ID,

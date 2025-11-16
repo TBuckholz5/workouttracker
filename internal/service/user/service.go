@@ -2,13 +2,13 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
 	db "github.com/TBuckholz5/workouttracker/internal/db/user"
 	"github.com/TBuckholz5/workouttracker/internal/jwt"
 	repo "github.com/TBuckholz5/workouttracker/internal/repository/user"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -28,15 +28,15 @@ func (s *Service) CreateUser(reqContext context.Context, userDto *dto.RegisterRe
 		return err
 	}
 	_, err = s.repo.CreateUser(reqContext, &db.CreateUserParams{
-		Username: sql.NullString{String: userDto.Username, Valid: true},
-		Email:    sql.NullString{String: userDto.Email, Valid: true},
-		PwHash:   sql.NullString{String: hashedPassword, Valid: true},
+		Username: pgtype.Text{String: userDto.Username, Valid: true},
+		Email:    pgtype.Text{String: userDto.Email, Valid: true},
+		PwHash:   pgtype.Text{String: hashedPassword, Valid: true},
 	})
 	return err
 }
 
 func (s *Service) AuthenticateUser(reqContext context.Context, loginDto *dto.LoginRequest) (string, error) {
-	user, err := s.repo.GetUserForUsername(reqContext, sql.NullString{String: loginDto.Username, Valid: true})
+	user, err := s.repo.GetUserForUsername(reqContext, pgtype.Text{String: loginDto.Username, Valid: true})
 	if err != nil {
 		return "", err
 	}

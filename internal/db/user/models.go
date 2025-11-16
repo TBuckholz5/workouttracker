@@ -5,15 +5,14 @@
 package user
 
 import (
-	"database/sql"
-	"time"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type User struct {
 	ID        int64
-	Email     sql.NullString
-	Username  sql.NullString
-	PwHash    sql.NullString
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Email     pgtype.Text
+	Username  pgtype.Text
+	PwHash    pgtype.Text
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
 }
