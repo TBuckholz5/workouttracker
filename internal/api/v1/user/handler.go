@@ -25,3 +25,16 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 }
+
+func (h *Handler) Login(c *gin.Context) {
+	var payload dto.LoginRequest
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	err := h.service.AuthenticateUser(c.Request.Context(), &payload)
+	if err != nil {
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+}
