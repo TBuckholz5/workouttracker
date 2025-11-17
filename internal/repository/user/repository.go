@@ -9,6 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type UserRepository interface {
+	CreateUser(ctx context.Context, arg *user.CreateUserParams) (user.User, error)
+	GetUserForUsername(ctx context.Context, username pgtype.Text) (user.User, error)
+}
+
 type Repository struct {
 	pool *pgxpool.Pool
 }

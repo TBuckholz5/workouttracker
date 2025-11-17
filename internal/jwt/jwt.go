@@ -10,7 +10,22 @@ import (
 
 const ISSUER = "workout-tracker"
 
-func GenerateJwt(userID int64, jwtSecret []byte) (string, error) {
+type JwtService interface {
+	GenerateJwt(userID int64) (string, error)
+	ValidateJwt(ctx *gin.Context, tokenString string) error
+}
+
+type Jwt struct {
+	secret []byte
+}
+
+func NewJwtService(jwtSecret []byte) *Jwt {
+	return &Jwt{
+		secret: jwtSecret,
+	}
+}
+
+func (j *Jwt) GenerateJwt(userID int64) (string, error) {
 	claims := jwt.MapClaims{
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 		"sub": userID,
@@ -19,16 +34,16 @@ func GenerateJwt(userID int64, jwtSecret []byte) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString(jwtSecret)
+	signedToken, err := token.SignedString(j.secret)
 	if err != nil {
 		return "", err
 	}
 	return signedToken, nil
 }
 
-func ValidateJwt(ctx *gin.Context, tokenString string, jwtSecret []byte) error {
+func (j *Jwt) ValidateJwt(ctx *gin.Context, tokenString string) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return jwtSecret, nil
+		return j.secret, nil
 	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
 		return err

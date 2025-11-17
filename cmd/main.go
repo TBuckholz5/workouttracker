@@ -8,6 +8,8 @@ import (
 
 	userapi "github.com/TBuckholz5/workouttracker/internal/api/v1/user"
 	"github.com/TBuckholz5/workouttracker/internal/config"
+	"github.com/TBuckholz5/workouttracker/internal/hash"
+	"github.com/TBuckholz5/workouttracker/internal/jwt"
 	"github.com/TBuckholz5/workouttracker/internal/middleware/auth"
 	userrepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
 	userservice "github.com/TBuckholz5/workouttracker/internal/service/user"
@@ -48,11 +50,12 @@ func main() {
 	}
 
 	// Start server.
+	jwtService := jwt.NewJwtService(jwtSecret)
 	userRepository := userrepo.NewRepository(pool)
-	userService := userservice.NewService(userRepository, jwtSecret)
+	userService := userservice.NewService(userRepository, hash.NewBcryptHasher(), jwtService)
 	userHandler := userapi.NewHandler(userService)
 	r := gin.Default()
-	r.GET("/", auth.AuthMiddleware(jwtSecret), func(c *gin.Context) {
+	r.GET("/", auth.AuthMiddleware(jwtService), func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, Gin!",
 		})

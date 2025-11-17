@@ -1,0 +1,224 @@
+package user
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
+	db "github.com/TBuckholz5/workouttracker/internal/db/user"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+)
+
+type mockUserRepo struct {
+	mock.Mock
+}
+
+func (m *mockUserRepo) CreateUser(ctx context.Context, params *db.CreateUserParams) (db.User, error) {
+	args := m.Called(ctx, params)
+	return args.Get(0).(db.User), args.Error(1)
+}
+
+func (m *mockUserRepo) GetUserForUsername(ctx context.Context, username pgtype.Text) (db.User, error) {
+	args := m.Called(ctx, username)
+	return args.Get(0).(db.User), args.Error(1)
+}
+
+type mockHasher struct {
+	mock.Mock
+}
+
+func (m *mockHasher) HashPassword(password string) (string, error) {
+	args := m.Called(password)
+	return args.String(0), args.Error(1)
+}
+
+func (m *mockHasher) VerifyPassword(hashedPassword, password string) error {
+	args := m.Called(hashedPassword, password)
+	return args.Error(0)
+}
+
+type mockJwtService struct {
+	mock.Mock
+}
+
+func (m *mockJwtService) GenerateJwt(userID int64) (string, error) {
+	args := m.Called(userID)
+	return args.String(0), args.Error(1)
+}
+
+func (m *mockJwtService) ValidateJwt(ctx *gin.Context, tokenString string) error {
+	args := m.Called(ctx, tokenString)
+	return args.Error(0)
+}
+
+func TestCreateUser_Success(t *testing.T) {
+	password := "password123"
+	hashedPassword := "hashedpassword123"
+
+	repo := &mockUserRepo{}
+	repo.On("CreateUser", mock.Anything, mock.Anything).Return(db.User{ID: 1}, nil)
+
+	hasher := &mockHasher{}
+	hasher.On("HashPassword", password).Return(hashedPassword, nil)
+
+	s := NewService(repo, hasher, nil)
+	req := &dto.RegisterRequest{
+		Username: "testuser",
+		Email:    "test@example.com",
+		Password: password,
+	}
+	err := s.CreateUser(context.Background(), req)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	repo.AssertNumberOfCalls(t, "CreateUser", 1)
+	repo.AssertCalled(t, "CreateUser", mock.Anything, mock.MatchedBy(func(arg *db.CreateUserParams) bool {
+		return arg.Username.String == req.Username && arg.Email.String == req.Email && arg.PwHash.String == hashedPassword
+	}))
+}
+
+func TestCreateUser_HashError(t *testing.T) {
+	password := "password123"
+
+	repo := &mockUserRepo{}
+	repo.On("CreateUser", mock.Anything, mock.Anything).Return(db.User{ID: 1}, nil)
+
+	hasher := &mockHasher{}
+	hasher.On("HashPassword", password).Return("", fmt.Errorf("hash error"))
+
+	s := NewService(repo, hasher, nil)
+	req := &dto.RegisterRequest{
+		Username: "testuser",
+		Email:    "test@example.com",
+		Password: password,
+	}
+	err := s.CreateUser(context.Background(), req)
+	assert.NotEqual(t, err, nil)
+
+	repo.AssertNumberOfCalls(t, "CreateUser", 0)
+}
+
+func TestAuthenticateUser_Success(t *testing.T) {
+	password := "password123"
+	hashedPassword := []byte("test")
+	tokenString := "validtoken"
+
+	repo := &mockUserRepo{}
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	})).Return(db.User{
+		ID:     1,
+		PwHash: pgtype.Text{String: string(hashedPassword), Valid: true},
+	}, nil)
+
+	hasher := &mockHasher{}
+	hasher.On("VerifyPassword", string(hashedPassword), password).Return(nil)
+
+	jwtService := &mockJwtService{}
+	jwtService.On("GenerateJwt", int64(1)).Return(tokenString, nil)
+
+	s := NewService(repo, hasher, jwtService)
+	req := &dto.LoginRequest{
+		Username: "testuser",
+		Password: password,
+	}
+	token, err := s.AuthenticateUser(context.Background(), req)
+
+	assert.Nil(t, err)
+	assert.Equal(t, tokenString, token)
+	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
+	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	}))
+}
+
+func TestAuthenticateUser_UserNotFound(t *testing.T) {
+	password := "password123"
+
+	repo := &mockUserRepo{}
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	})).Return(db.User{}, fmt.Errorf("user not found"))
+
+	s := NewService(repo, nil, nil)
+	req := &dto.LoginRequest{
+		Username: "testuser",
+		Password: password,
+	}
+	_, err := s.AuthenticateUser(context.Background(), req)
+
+	assert.NotNil(t, err)
+	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
+}
+
+func TestAuthenticateUser_PasswordMismatchError(t *testing.T) {
+	password := "password123"
+	hashedPassword := []byte("test")
+
+	repo := &mockUserRepo{}
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	})).Return(db.User{
+		ID:     1,
+		PwHash: pgtype.Text{String: string(hashedPassword), Valid: true},
+	}, nil)
+
+	hasher := &mockHasher{}
+	hasher.On("VerifyPassword", string(hashedPassword), password).Return(fmt.Errorf("passwords do not match"))
+
+	s := NewService(repo, hasher, nil)
+	req := &dto.LoginRequest{
+		Username: "testuser",
+		Password: password,
+	}
+	_, err := s.AuthenticateUser(context.Background(), req)
+
+	assert.NotNil(t, err)
+	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
+	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	}))
+	hasher.AssertNumberOfCalls(t, "VerifyPassword", 1)
+	hasher.AssertCalled(t, "VerifyPassword", string(hashedPassword), password)
+}
+
+func TestAuthenticateUser_JwtError(t *testing.T) {
+	password := "password123"
+	hashedPassword := []byte("test")
+
+	repo := &mockUserRepo{}
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	})).Return(db.User{
+		ID:     1,
+		PwHash: pgtype.Text{String: string(hashedPassword), Valid: true},
+	}, nil)
+
+	hasher := &mockHasher{}
+	hasher.On("VerifyPassword", string(hashedPassword), password).Return(nil)
+
+	jwtService := &mockJwtService{}
+	jwtService.On("GenerateJwt", int64(1)).Return("", fmt.Errorf("jwt generation error"))
+
+	s := NewService(repo, hasher, jwtService)
+	req := &dto.LoginRequest{
+		Username: "testuser",
+		Password: password,
+	}
+	_, err := s.AuthenticateUser(context.Background(), req)
+
+	assert.NotNil(t, err)
+	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
+	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
+		return arg.String == "testuser"
+	}))
+	hasher.AssertNumberOfCalls(t, "VerifyPassword", 1)
+	hasher.AssertCalled(t, "VerifyPassword", string(hashedPassword), password)
+	jwtService.AssertNumberOfCalls(t, "GenerateJwt", 1)
+	jwtService.AssertCalled(t, "GenerateJwt", int64(1))
+}
