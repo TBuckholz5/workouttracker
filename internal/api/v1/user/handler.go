@@ -7,10 +7,10 @@ import (
 )
 
 type Handler struct {
-	service *user.Service
+	service user.UserService
 }
 
-func NewHandler(s *user.Service) *Handler {
+func NewHandler(s user.UserService) *Handler {
 	return &Handler{service: s}
 }
 

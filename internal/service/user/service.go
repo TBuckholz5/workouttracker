@@ -12,6 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserService interface {
+	CreateUser(reqContext context.Context, userDto *dto.RegisterRequest) error
+	AuthenticateUser(reqContext context.Context, loginDto *dto.LoginRequest) (string, error)
+}
+
 type Service struct {
 	repo      *repo.Repository
 	jwtSecret []byte
