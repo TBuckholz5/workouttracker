@@ -13,12 +13,14 @@ import (
 )
 
 type Service struct {
-	repo *repo.Repository
+	repo      *repo.Repository
+	jwtSecret []byte
 }
 
-func NewService(r *repo.Repository) *Service {
+func NewService(r *repo.Repository, jwtSecret []byte) *Service {
 	return &Service{
-		repo: r,
+		repo:      r,
+		jwtSecret: jwtSecret,
 	}
 }
 
@@ -46,7 +48,7 @@ func (s *Service) AuthenticateUser(reqContext context.Context, loginDto *dto.Log
 		return "", fmt.Errorf("passwords do not match")
 	}
 
-	token, err := jwt.GenerateJwt(user.ID)
+	token, err := jwt.GenerateJwt(user.ID, s.jwtSecret)
 	if err != nil {
 		return "", err
 	}

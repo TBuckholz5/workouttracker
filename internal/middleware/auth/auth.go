@@ -1,0 +1,24 @@
+package auth
+
+import (
+	"strings"
+
+	"github.com/TBuckholz5/workouttracker/internal/jwt"
+	"github.com/gin-gonic/gin"
+)
+
+func AuthMiddleware(jwtSecret []byte) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		const prefix = "Bearer "
+		if !strings.HasPrefix(authHeader, prefix) {
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+		}
+		authHeader = strings.TrimSpace(strings.TrimPrefix(authHeader, prefix))
+		if err := jwt.ValidateJwt(c, authHeader, jwtSecret); err != nil {
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
+		}
+
+		c.Next()
+	}
+}

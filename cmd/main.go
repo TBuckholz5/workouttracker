@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"log"
 
 	userapi "github.com/TBuckholz5/workouttracker/internal/api/v1/user"
 	"github.com/TBuckholz5/workouttracker/internal/config"
+	"github.com/TBuckholz5/workouttracker/internal/middleware/auth"
 	userrepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
 	userservice "github.com/TBuckholz5/workouttracker/internal/service/user"
 	"github.com/gin-gonic/gin"
@@ -37,12 +39,20 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Generate JWT secret.
+	// TODO: Store in a better way than in memory - means server restarts will invalidate all tokens.
+	jwtSecret := make([]byte, 32)
+	_, err = rand.Read(jwtSecret)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Start server.
 	userRepository := userrepo.NewRepository(pool)
-	userService := userservice.NewService(userRepository)
+	userService := userservice.NewService(userRepository, jwtSecret)
 	userHandler := userapi.NewHandler(userService)
 	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/", auth.AuthMiddleware(jwtSecret), func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, Gin!",
 		})
