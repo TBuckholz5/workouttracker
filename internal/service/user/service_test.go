@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
-	db "github.com/TBuckholz5/workouttracker/internal/db/user"
+	userRepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -17,14 +16,14 @@ type mockUserRepo struct {
 	mock.Mock
 }
 
-func (m *mockUserRepo) CreateUser(ctx context.Context, params *db.CreateUserParams) (db.User, error) {
+func (m *mockUserRepo) CreateUser(ctx context.Context, params *userRepo.CreateUserParams) (userRepo.User, error) {
 	args := m.Called(ctx, params)
-	return args.Get(0).(db.User), args.Error(1)
+	return args.Get(0).(userRepo.User), args.Error(1)
 }
 
-func (m *mockUserRepo) GetUserForUsername(ctx context.Context, username pgtype.Text) (db.User, error) {
+func (m *mockUserRepo) GetUserForUsername(ctx context.Context, username string) (userRepo.User, error) {
 	args := m.Called(ctx, username)
-	return args.Get(0).(db.User), args.Error(1)
+	return args.Get(0).(userRepo.User), args.Error(1)
 }
 
 type mockHasher struct {
@@ -60,7 +59,7 @@ func TestCreateUser_Success(t *testing.T) {
 	hashedPassword := "hashedpassword123"
 
 	repo := &mockUserRepo{}
-	repo.On("CreateUser", mock.Anything, mock.Anything).Return(db.User{ID: 1}, nil)
+	repo.On("CreateUser", mock.Anything, mock.Anything).Return(userRepo.User{ID: 1}, nil)
 
 	hasher := &mockHasher{}
 	hasher.On("HashPassword", password).Return(hashedPassword, nil)
@@ -77,8 +76,8 @@ func TestCreateUser_Success(t *testing.T) {
 	}
 
 	repo.AssertNumberOfCalls(t, "CreateUser", 1)
-	repo.AssertCalled(t, "CreateUser", mock.Anything, mock.MatchedBy(func(arg *db.CreateUserParams) bool {
-		return arg.Username.String == req.Username && arg.Email.String == req.Email && arg.PwHash.String == hashedPassword
+	repo.AssertCalled(t, "CreateUser", mock.Anything, mock.MatchedBy(func(arg *userRepo.CreateUserParams) bool {
+		return arg.Username == req.Username && arg.Email == req.Email && arg.PwHash == hashedPassword
 	}))
 }
 
@@ -86,7 +85,7 @@ func TestCreateUser_HashError(t *testing.T) {
 	password := "password123"
 
 	repo := &mockUserRepo{}
-	repo.On("CreateUser", mock.Anything, mock.Anything).Return(db.User{ID: 1}, nil)
+	repo.On("CreateUser", mock.Anything, mock.Anything).Return(userRepo.User{ID: 1}, nil)
 
 	hasher := &mockHasher{}
 	hasher.On("HashPassword", password).Return("", fmt.Errorf("hash error"))
@@ -109,11 +108,11 @@ func TestAuthenticateUser_Success(t *testing.T) {
 	tokenString := "validtoken"
 
 	repo := &mockUserRepo{}
-	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
-	})).Return(db.User{
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
+	})).Return(userRepo.User{
 		ID:     1,
-		PwHash: pgtype.Text{String: string(hashedPassword), Valid: true},
+		PwHash: string(hashedPassword),
 	}, nil)
 
 	hasher := &mockHasher{}
@@ -132,8 +131,8 @@ func TestAuthenticateUser_Success(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, tokenString, token)
 	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
-	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
+	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
 	}))
 }
 
@@ -141,9 +140,9 @@ func TestAuthenticateUser_UserNotFound(t *testing.T) {
 	password := "password123"
 
 	repo := &mockUserRepo{}
-	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
-	})).Return(db.User{}, fmt.Errorf("user not found"))
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
+	})).Return(userRepo.User{}, fmt.Errorf("user not found"))
 
 	s := NewService(repo, nil, nil)
 	req := &dto.LoginRequest{
@@ -161,11 +160,11 @@ func TestAuthenticateUser_PasswordMismatchError(t *testing.T) {
 	hashedPassword := []byte("test")
 
 	repo := &mockUserRepo{}
-	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
-	})).Return(db.User{
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
+	})).Return(userRepo.User{
 		ID:     1,
-		PwHash: pgtype.Text{String: string(hashedPassword), Valid: true},
+		PwHash: string(hashedPassword),
 	}, nil)
 
 	hasher := &mockHasher{}
@@ -180,8 +179,8 @@ func TestAuthenticateUser_PasswordMismatchError(t *testing.T) {
 
 	assert.NotNil(t, err)
 	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
-	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
+	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
 	}))
 	hasher.AssertNumberOfCalls(t, "VerifyPassword", 1)
 	hasher.AssertCalled(t, "VerifyPassword", string(hashedPassword), password)
@@ -192,11 +191,11 @@ func TestAuthenticateUser_JwtError(t *testing.T) {
 	hashedPassword := []byte("test")
 
 	repo := &mockUserRepo{}
-	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
-	})).Return(db.User{
+	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
+	})).Return(userRepo.User{
 		ID:     1,
-		PwHash: pgtype.Text{String: string(hashedPassword), Valid: true},
+		PwHash: string(hashedPassword),
 	}, nil)
 
 	hasher := &mockHasher{}
@@ -214,8 +213,8 @@ func TestAuthenticateUser_JwtError(t *testing.T) {
 
 	assert.NotNil(t, err)
 	repo.AssertNumberOfCalls(t, "GetUserForUsername", 1)
-	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg pgtype.Text) bool {
-		return arg.String == "testuser"
+	repo.AssertCalled(t, "GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
+		return arg == "testuser"
 	}))
 	hasher.AssertNumberOfCalls(t, "VerifyPassword", 1)
 	hasher.AssertCalled(t, "VerifyPassword", string(hashedPassword), password)
