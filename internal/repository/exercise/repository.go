@@ -16,7 +16,7 @@ type CreateExerciseParams struct {
 	UserID       int64
 }
 
-type GetExerciseforUserParams struct {
+type GetExerciseForUserParams struct {
 	UserID int64
 	Limit  int32
 	Offset int32
@@ -24,7 +24,7 @@ type GetExerciseforUserParams struct {
 
 type ExerciseRepository interface {
 	CreateExercise(ctx context.Context, params *CreateExerciseParams) (serviceModels.Exercise, error)
-	GetExercisesForUser(ctx context.Context, params *GetExerciseforUserParams) ([]serviceModels.Exercise, error)
+	GetExercisesForUser(ctx context.Context, params *GetExerciseForUserParams) ([]serviceModels.Exercise, error)
 }
 
 type Repository struct {
@@ -67,7 +67,7 @@ func (r *Repository) CreateExercise(ctx context.Context, params *CreateExerciseP
 	}, nil
 }
 
-func (r *Repository) GetExercisesForUser(ctx context.Context, params *GetExerciseforUserParams) ([]serviceModels.Exercise, error) {
+func (r *Repository) GetExercisesForUser(ctx context.Context, params *GetExerciseForUserParams) ([]serviceModels.Exercise, error) {
 	rows, err := r.pool.Query(ctx, getExercisesForUserQuery, params.UserID, params.Limit, params.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching exercises for user: %w", err)
