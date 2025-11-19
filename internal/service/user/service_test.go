@@ -7,6 +7,7 @@ import (
 
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
 	userRepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
+	"github.com/TBuckholz5/workouttracker/internal/service/user/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -16,14 +17,14 @@ type mockUserRepo struct {
 	mock.Mock
 }
 
-func (m *mockUserRepo) CreateUser(ctx context.Context, params *userRepo.CreateUserParams) (userRepo.User, error) {
+func (m *mockUserRepo) CreateUser(ctx context.Context, params *userRepo.CreateUserParams) (models.User, error) {
 	args := m.Called(ctx, params)
-	return args.Get(0).(userRepo.User), args.Error(1)
+	return args.Get(0).(models.User), args.Error(1)
 }
 
-func (m *mockUserRepo) GetUserForUsername(ctx context.Context, username string) (userRepo.User, error) {
+func (m *mockUserRepo) GetUserForUsername(ctx context.Context, username string) (models.User, error) {
 	args := m.Called(ctx, username)
-	return args.Get(0).(userRepo.User), args.Error(1)
+	return args.Get(0).(models.User), args.Error(1)
 }
 
 type mockHasher struct {
@@ -59,7 +60,7 @@ func TestCreateUser_Success(t *testing.T) {
 	hashedPassword := "hashedpassword123"
 
 	repo := &mockUserRepo{}
-	repo.On("CreateUser", mock.Anything, mock.Anything).Return(userRepo.User{ID: 1}, nil)
+	repo.On("CreateUser", mock.Anything, mock.Anything).Return(models.User{ID: 1}, nil)
 
 	hasher := &mockHasher{}
 	hasher.On("HashPassword", password).Return(hashedPassword, nil)
@@ -85,7 +86,7 @@ func TestCreateUser_HashError(t *testing.T) {
 	password := "password123"
 
 	repo := &mockUserRepo{}
-	repo.On("CreateUser", mock.Anything, mock.Anything).Return(userRepo.User{ID: 1}, nil)
+	repo.On("CreateUser", mock.Anything, mock.Anything).Return(models.User{ID: 1}, nil)
 
 	hasher := &mockHasher{}
 	hasher.On("HashPassword", password).Return("", fmt.Errorf("hash error"))
@@ -110,7 +111,7 @@ func TestAuthenticateUser_Success(t *testing.T) {
 	repo := &mockUserRepo{}
 	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
 		return arg == "testuser"
-	})).Return(userRepo.User{
+	})).Return(models.User{
 		ID:     1,
 		PwHash: string(hashedPassword),
 	}, nil)
@@ -142,7 +143,7 @@ func TestAuthenticateUser_UserNotFound(t *testing.T) {
 	repo := &mockUserRepo{}
 	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
 		return arg == "testuser"
-	})).Return(userRepo.User{}, fmt.Errorf("user not found"))
+	})).Return(models.User{}, fmt.Errorf("user not found"))
 
 	s := NewService(repo, nil, nil)
 	req := &dto.LoginRequest{
@@ -162,7 +163,7 @@ func TestAuthenticateUser_PasswordMismatchError(t *testing.T) {
 	repo := &mockUserRepo{}
 	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
 		return arg == "testuser"
-	})).Return(userRepo.User{
+	})).Return(models.User{
 		ID:     1,
 		PwHash: string(hashedPassword),
 	}, nil)
@@ -193,7 +194,7 @@ func TestAuthenticateUser_JwtError(t *testing.T) {
 	repo := &mockUserRepo{}
 	repo.On("GetUserForUsername", mock.Anything, mock.MatchedBy(func(arg string) bool {
 		return arg == "testuser"
-	})).Return(userRepo.User{
+	})).Return(models.User{
 		ID:     1,
 		PwHash: string(hashedPassword),
 	}, nil)
