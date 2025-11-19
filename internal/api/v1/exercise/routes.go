@@ -1,4 +1,4 @@
-package user
+package exercise
 
 import "github.com/gin-gonic/gin"
 

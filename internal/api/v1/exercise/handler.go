@@ -1,4 +1,4 @@
-package user
+package exercise
 
 import (
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/exercise/dto"
