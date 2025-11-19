@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"log"
 
-	userapi "github.com/TBuckholz5/workouttracker/internal/api/v1/user"
+	exerciseApi "github.com/TBuckholz5/workouttracker/internal/api/v1/exercise"
+	userApi "github.com/TBuckholz5/workouttracker/internal/api/v1/user"
 	"github.com/TBuckholz5/workouttracker/internal/config"
 	"github.com/TBuckholz5/workouttracker/internal/hash"
 	"github.com/TBuckholz5/workouttracker/internal/jwt"
 	"github.com/TBuckholz5/workouttracker/internal/middleware/auth"
-	userrepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
-	userservice "github.com/TBuckholz5/workouttracker/internal/service/user"
+	exerciseRepo "github.com/TBuckholz5/workouttracker/internal/repository/exercise"
+	userRepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
+	exerciseServ "github.com/TBuckholz5/workouttracker/internal/service/exercise"
+	userServ "github.com/TBuckholz5/workouttracker/internal/service/user"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -51,17 +54,24 @@ func main() {
 
 	// Start server.
 	jwtService := jwt.NewJwtService(jwtSecret)
-	userRepository := userrepo.NewRepository(pool)
-	userService := userservice.NewService(userRepository, hash.NewBcryptHasher(), jwtService)
-	userHandler := userapi.NewHandler(userService)
 	r := gin.Default()
 	r.GET("/", auth.AuthMiddleware(jwtService), func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, Gin!",
 		})
 	})
+	userRepository := userRepo.NewRepository(pool)
+	userService := userServ.NewService(userRepository, hash.NewBcryptHasher(), jwtService)
+	userHandler := userApi.NewHandler(userService)
 	apiV1 := r.Group("/api/v1")
-	userapi.RegisterUserRoutes(apiV1, userHandler)
+	userApi.RegisterUserRoutes(apiV1, userHandler)
+	if err := r.Run(fmt.Sprintf(":%d", config.ServerPort)); err != nil {
+		log.Fatal(err)
+	}
+	exerciseRepository := exerciseRepo.NewRepository(pool)
+	exerciseService := exerciseServ.NewService(exerciseRepository)
+	exerciseHandler := exerciseApi.NewHandler(exerciseService)
+	exerciseApi.RegisterExerciseRoutes(apiV1, exerciseHandler, auth.AuthMiddleware(jwtService))
 	if err := r.Run(fmt.Sprintf(":%d", config.ServerPort)); err != nil {
 		log.Fatal(err)
 	}
