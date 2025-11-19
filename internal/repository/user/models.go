@@ -4,11 +4,11 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type User struct {
-	ID        int64
-	Email     pgtype.Text
-	Username  pgtype.Text
-	PwHash    pgtype.Text
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
+type user struct {
+	id        int64
+	email     pgtype.Text
+	username  pgtype.Text
+	pwHash    pgtype.Text
+	createdAt pgtype.Timestamp
+	updatedAt pgtype.Timestamp
 }

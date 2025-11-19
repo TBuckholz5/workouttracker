@@ -31,44 +31,44 @@ type CreateUserParams struct {
 
 func (r *Repository) CreateUser(ctx context.Context, params *CreateUserParams) (serviceModels.User, error) {
 	row := r.pool.QueryRow(ctx, createUser, params.Username, params.Email, params.PwHash)
-	var user User
+	var user user
 	err := row.Scan(
-		&user.ID,
-		&user.Username,
-		&user.Email,
-		&user.PwHash,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&user.id,
+		&user.username,
+		&user.email,
+		&user.pwHash,
+		&user.createdAt,
+		&user.updatedAt,
 	)
 	if err != nil {
 		return serviceModels.User{}, fmt.Errorf("could not create user: %w", err)
 	}
 	return serviceModels.User{
-		ID:       user.ID,
-		Username: user.Username.String,
-		Email:    user.Email.String,
-		PwHash:   user.PwHash.String,
+		ID:       user.id,
+		Username: user.username.String,
+		Email:    user.email.String,
+		PwHash:   user.pwHash.String,
 	}, nil
 }
 
 func (r *Repository) GetUserForUsername(ctx context.Context, username string) (serviceModels.User, error) {
 	row := r.pool.QueryRow(ctx, getUserByUsername, username)
-	var user User
+	var user user
 	err := row.Scan(
-		&user.ID,
-		&user.Username,
-		&user.Email,
-		&user.PwHash,
-		&user.CreatedAt,
-		&user.UpdatedAt,
+		&user.id,
+		&user.username,
+		&user.email,
+		&user.pwHash,
+		&user.createdAt,
+		&user.updatedAt,
 	)
 	if err != nil {
 		return serviceModels.User{}, fmt.Errorf("could not get user for username: %s", username)
 	}
 	return serviceModels.User{
-		ID:       user.ID,
-		Username: user.Username.String,
-		Email:    user.Email.String,
-		PwHash:   user.PwHash.String,
+		ID:       user.id,
+		Username: user.username.String,
+		Email:    user.email.String,
+		PwHash:   user.pwHash.String,
 	}, nil
 }
