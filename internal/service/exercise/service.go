@@ -1,4 +1,4 @@
-package service
+package exercise
 
 import (
 	"context"
