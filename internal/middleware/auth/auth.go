@@ -3,7 +3,7 @@ package auth
 import (
 	"strings"
 
-	"github.com/TBuckholz5/workouttracker/internal/jwt"
+	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
 	"github.com/gin-gonic/gin"
 )
 

@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
-	"github.com/TBuckholz5/workouttracker/internal/hash"
-	"github.com/TBuckholz5/workouttracker/internal/jwt"
 	repo "github.com/TBuckholz5/workouttracker/internal/repository/user"
+	"github.com/TBuckholz5/workouttracker/internal/util/hash"
+	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
 )
 
 type UserService interface {
