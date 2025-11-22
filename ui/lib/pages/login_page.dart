@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'main_tabs.dart';
 import '../env.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../utils/api.dart' as api;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,24 +17,24 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final apiUrl = Env.instance.apiUserUrl;
+  final storage = FlutterSecureStorage();
+
   bool _isLoading = false;
   String? _errorMessage;
 
   Future<bool> _authenticate(String username, String password) async {
-    final url = Uri.parse('$apiUrl/login');
-    final payload = {'username': username, 'password': password};
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-      if (response.statusCode == 200) {
-        return true;
-      } else {
+      final response = await api.sendPostRequest('$apiUrl/login', {
+        'username': username,
+        'password': password,
+      });
+      if (!response.containsKey('token')) {
         return false;
       }
+      // Store the token into secure storage.
+      await storage.write(key: 'auth_token', value: response['token']);
+
+      return true;
     } catch (e) {
       return false;
     }

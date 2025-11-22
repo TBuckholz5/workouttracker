@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'main_tabs.dart';
+import 'login_page.dart';
 import '../env.dart';
+import '../utils/api.dart' as api;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -22,24 +21,13 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _errorMessage;
 
   Future<bool> _register(String email, String username, String password) async {
-    final url = Uri.parse('$apiUrl/register');
-    final payload = {
-      'email': email,
-      'username': username,
-      'password': password,
-    };
-
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
-      );
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
+      api.sendPostRequest('$apiUrl/register', {
+        'email': email,
+        'username': username,
+        'password': password,
+      });
+      return true;
     } catch (e) {
       return false;
     }
@@ -68,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainTabs()),
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
         setState(() {
