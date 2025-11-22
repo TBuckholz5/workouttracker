@@ -1,6 +1,8 @@
 package exercise
 
 import (
+	"strconv"
+
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/exercise/dto"
 	service "github.com/TBuckholz5/workouttracker/internal/service/exercise"
 	"github.com/gin-gonic/gin"
@@ -27,10 +29,17 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 }
 
 func (h *Handler) GetExerciseForUser(c *gin.Context) {
-	var payload dto.GetExerciseForUserRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(500, gin.H{"error": "userID not found in context"})
 		return
+	}
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	payload := dto.GetExerciseForUserRequest{
+		UserID: userID.(int64),
+		Offset: offset,
+		Limit:  limit,
 	}
 	exercises, err := h.service.GetExercisesForUser(c.Request.Context(), &payload)
 	if err != nil {

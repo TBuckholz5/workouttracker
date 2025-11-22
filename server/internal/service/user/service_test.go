@@ -8,7 +8,6 @@ import (
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
 	userRepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
 	"github.com/TBuckholz5/workouttracker/internal/service/user/models"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -50,9 +49,9 @@ func (m *mockJwtService) GenerateJwt(userID int64) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (m *mockJwtService) ValidateJwt(ctx *gin.Context, tokenString string) error {
-	args := m.Called(ctx, tokenString)
-	return args.Error(0)
+func (m *mockJwtService) ValidateJwt(tokenString string) (int64, error) {
+	args := m.Called(tokenString)
+	return args.Get(0).(int64), args.Error(1)
 }
 
 func TestCreateUser_Success(t *testing.T) {

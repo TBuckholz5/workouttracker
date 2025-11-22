@@ -18,8 +18,8 @@ type CreateExerciseParams struct {
 
 type GetExerciseForUserParams struct {
 	UserID int64
-	Limit  int32
-	Offset int32
+	Limit  int
+	Offset int
 }
 
 type ExerciseRepository interface {

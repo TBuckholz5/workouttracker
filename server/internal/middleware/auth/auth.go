@@ -15,9 +15,11 @@ func AuthMiddleware(jwtService jwt.JwtService) gin.HandlerFunc {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
 		}
 		authHeader = strings.TrimSpace(strings.TrimPrefix(authHeader, prefix))
-		if err := jwtService.ValidateJwt(c, authHeader); err != nil {
+		userID, err := jwtService.ValidateJwt(authHeader)
+		if err != nil {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized"})
 		}
+		c.Set("userID", userID)
 
 		c.Next()
 	}

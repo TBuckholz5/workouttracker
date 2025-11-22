@@ -7,7 +7,7 @@ type CreateExerciseRequest struct {
 }
 
 type GetExerciseForUserRequest struct {
-	UserID int64 `json:"userId" binding:"required"`
-	Offset int32 `json:"offset"`
-	Limit  int32 `json:"limit"`
+	UserID int64
+	Offset int
+	Limit  int
 }

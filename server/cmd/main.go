@@ -55,19 +55,11 @@ func main() {
 	// Start server.
 	jwtService := jwt.NewJwtService(jwtSecret)
 	r := gin.Default()
-	r.GET("/", auth.AuthMiddleware(jwtService), func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello, Gin!",
-		})
-	})
 	userRepository := userRepo.NewRepository(pool)
 	userService := userServ.NewService(userRepository, hash.NewBcryptHasher(), jwtService)
 	userHandler := userApi.NewHandler(userService)
 	apiV1 := r.Group("/api/v1")
 	userApi.RegisterUserRoutes(apiV1, userHandler)
-	if err := r.Run(fmt.Sprintf(":%d", config.ServerPort)); err != nil {
-		log.Fatal(err)
-	}
 	exerciseRepository := exerciseRepo.NewRepository(pool)
 	exerciseService := exerciseServ.NewService(exerciseRepository)
 	exerciseHandler := exerciseApi.NewHandler(exerciseService)
