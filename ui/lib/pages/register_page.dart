@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'home_page.dart';
+import 'main_tabs.dart';
 import '../env.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -68,9 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => const MyHomePage(title: 'Home'),
-          ),
+          MaterialPageRoute(builder: (context) => const MainTabs()),
         );
       } else {
         setState(() {
