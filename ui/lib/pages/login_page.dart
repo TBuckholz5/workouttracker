@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'home_page.dart';
+import '../env.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,11 +16,12 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final apiUrl = Env.instance.apiUserUrl;
   bool _isLoading = false;
   String? _errorMessage;
 
   Future<bool> _authenticate(String username, String password) async {
-    final url = Uri.parse('http://localhost:8080/api/v1/user/login');
+    final url = Uri.parse('$apiUrl/login');
     final payload = {'username': username, 'password': password};
 
     try {

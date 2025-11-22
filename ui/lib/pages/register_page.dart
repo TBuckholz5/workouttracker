@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'home_page.dart';
+import '../env.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -16,11 +17,12 @@ class _RegisterPageState extends State<RegisterPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
+  final apiUrl = Env.instance.apiUserUrl;
   bool _isLoading = false;
   String? _errorMessage;
 
   Future<bool> _register(String email, String username, String password) async {
-    final url = Uri.parse('http://localhost:8080/api/v1/user/register');
+    final url = Uri.parse('$apiUrl/register');
     final payload = {
       'email': email,
       'username': username,
