@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async'; // For simulating backend call
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:async';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -17,8 +19,23 @@ class _LoginPageState extends State<LoginPage> {
   String? _errorMessage;
 
   Future<bool> _authenticate(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
-    return username == 'user' && password == 'pass';
+    final url = Uri.parse('http://localhost:8080/api/v1/user/login');
+    final payload = {'username': username, 'password': password};
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<void> _login() async {

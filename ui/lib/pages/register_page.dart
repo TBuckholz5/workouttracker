@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'home_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -10,21 +12,40 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
 
-  Future<bool> _register(
-    String username,
-    String password,
-    String confirm,
-  ) async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (password != confirm) return false;
-    // Simulate registration success
-    return username.isNotEmpty && password.length >= 8;
+  Future<bool> _register(String email, String username, String password) async {
+    final url = Uri.parse('http://localhost:8080/api/v1/user/register');
+    final payload = {
+      'email': email,
+      'username': username,
+      'password': password,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    return emailRegex.hasMatch(email);
   }
 
   Future<void> _onRegister() async {
@@ -34,9 +55,9 @@ class _RegisterPageState extends State<RegisterPage> {
         _errorMessage = null;
       });
       bool success = await _register(
+        _emailController.text,
         _usernameController.text,
         _passwordController.text,
-        _confirmController.text,
       );
       setState(() {
         _isLoading = false;
@@ -59,6 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
+    _emailController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
@@ -89,6 +111,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 decoration: const InputDecoration(labelText: 'Username'),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Enter username' : null,
+              ),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (value) => value == null || !_isValidEmail(value)
+                    ? 'Enter email'
+                    : null,
               ),
               TextFormField(
                 controller: _passwordController,
