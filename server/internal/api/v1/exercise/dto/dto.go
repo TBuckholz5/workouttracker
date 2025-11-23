@@ -5,9 +5,3 @@ type CreateExerciseRequest struct {
 	Description  string `json:"description"`
 	TargetMuscle string `json:"targetMuscle"`
 }
-
-type GetExerciseForUserRequest struct {
-	UserID int64
-	Offset int
-	Limit  int
-}

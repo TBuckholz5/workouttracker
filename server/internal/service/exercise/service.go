@@ -3,14 +3,13 @@ package exercise
 import (
 	"context"
 
-	"github.com/TBuckholz5/workouttracker/internal/api/v1/exercise/dto"
 	repo "github.com/TBuckholz5/workouttracker/internal/repository/exercise"
 	"github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
 )
 
 type ExerciseService interface {
-	CreateExercise(reqContext context.Context, dto *dto.CreateExerciseRequest) error
-	GetExercisesForUser(reqContext context.Context, dto *dto.GetExerciseForUserRequest) ([]models.Exercise, error)
+	CreateExercise(reqContext context.Context, params *models.CreateExerciseForUserParams) error
+	GetExercisesForUser(reqContext context.Context, params *models.GetExerciseForUserParams) ([]models.Exercise, error)
 }
 
 type Service struct {
@@ -23,16 +22,18 @@ func NewService(r repo.ExerciseRepository) *Service {
 	}
 }
 
-func (s *Service) CreateExercise(reqContext context.Context, dto *dto.CreateExerciseRequest) error {
+func (s *Service) CreateExercise(reqContext context.Context, dto *models.CreateExerciseForUserParams) error {
 	_, err := s.repo.CreateExercise(reqContext, &repo.CreateExerciseParams{
 		Name:         dto.Name,
 		Description:  dto.Description,
 		TargetMuscle: dto.TargetMuscle,
+		PictureURL:   dto.PictureURL,
+		UserID:       dto.UserID,
 	})
 	return err
 }
 
-func (s *Service) GetExercisesForUser(reqContext context.Context, dto *dto.GetExerciseForUserRequest) ([]models.Exercise, error) {
+func (s *Service) GetExercisesForUser(reqContext context.Context, dto *models.GetExerciseForUserParams) ([]models.Exercise, error) {
 	exercises, err := s.repo.GetExercisesForUser(reqContext, &repo.GetExerciseForUserParams{
 		UserID: dto.UserID,
 		Offset: dto.Offset,

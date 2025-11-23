@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/api/v1/exercise/dto"
 	repo "github.com/TBuckholz5/workouttracker/internal/repository/exercise"
 	"github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +27,8 @@ func (m *mockExerciseRepo) GetExercisesForUser(ctx context.Context, params *repo
 
 func TestCreateExercise_Success(t *testing.T) {
 	mockRepo := new(mockExerciseRepo)
-	req := &dto.CreateExerciseRequest{
+	req := &models.CreateExerciseForUserParams{
+		UserID:       1,
 		Name:         "Bench Press",
 		Description:  "Chest exercise",
 		TargetMuscle: "Chest",
@@ -45,7 +45,8 @@ func TestCreateExercise_Success(t *testing.T) {
 
 func TestCreateExercise_RepoError(t *testing.T) {
 	mockRepo := new(mockExerciseRepo)
-	req := &dto.CreateExerciseRequest{
+	req := &models.CreateExerciseForUserParams{
+		UserID:       1,
 		Name:         "Bench Press",
 		Description:  "Chest exercise",
 		TargetMuscle: "Chest",
@@ -60,7 +61,7 @@ func TestCreateExercise_RepoError(t *testing.T) {
 
 func TestGetExercisesForUser_Success(t *testing.T) {
 	mockRepo := new(mockExerciseRepo)
-	req := &dto.GetExerciseForUserRequest{
+	req := &models.GetExerciseForUserParams{
 		UserID: 1,
 		Offset: 0,
 		Limit:  10,
@@ -79,7 +80,7 @@ func TestGetExercisesForUser_Success(t *testing.T) {
 
 func TestGetExercisesForUser_RepoError(t *testing.T) {
 	mockRepo := new(mockExerciseRepo)
-	req := &dto.GetExerciseForUserRequest{
+	req := &models.GetExerciseForUserParams{
 		UserID: 1,
 		Offset: 0,
 		Limit:  10,

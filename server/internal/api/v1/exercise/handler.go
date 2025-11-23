@@ -5,6 +5,7 @@ import (
 
 	"github.com/TBuckholz5/workouttracker/internal/api/v1/exercise/dto"
 	service "github.com/TBuckholz5/workouttracker/internal/service/exercise"
+	serviceModel "github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +23,18 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.service.CreateExercise(c.Request.Context(), &payload); err != nil {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(500, gin.H{"error": "userID not found in context"})
+		return
+	}
+	params := serviceModel.CreateExerciseForUserParams{
+		UserID:       userID.(int64),
+		Name:         payload.Name,
+		Description:  payload.Description,
+		TargetMuscle: payload.TargetMuscle,
+	}
+	if err := h.service.CreateExercise(c.Request.Context(), &params); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
@@ -36,7 +48,7 @@ func (h *Handler) GetExerciseForUser(c *gin.Context) {
 	}
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	payload := dto.GetExerciseForUserRequest{
+	payload := serviceModel.GetExerciseForUserParams{
 		UserID: userID.(int64),
 		Offset: offset,
 		Limit:  limit,
