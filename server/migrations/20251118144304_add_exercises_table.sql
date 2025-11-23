@@ -6,8 +6,7 @@ CREATE TABLE exercises (
     target_muscle TEXT,
     picture_url TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    user_id BIGINT REFERENCES users(id)
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- +goose Down
