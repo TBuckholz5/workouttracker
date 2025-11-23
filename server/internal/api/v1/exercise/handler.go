@@ -34,10 +34,12 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 		Description:  payload.Description,
 		TargetMuscle: payload.TargetMuscle,
 	}
-	if err := h.service.CreateExercise(c.Request.Context(), &params); err != nil {
+	exercise, err := h.service.CreateExercise(c.Request.Context(), &params)
+	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(200, gin.H{"exercise": exercise})
 }
 
 func (h *Handler) GetExerciseForUser(c *gin.Context) {

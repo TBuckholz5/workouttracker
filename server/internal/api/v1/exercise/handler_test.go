@@ -21,9 +21,9 @@ type MockExerciseService struct {
 	mock.Mock
 }
 
-func (m *MockExerciseService) CreateExercise(ctx context.Context, req *models.CreateExerciseForUserParams) error {
+func (m *MockExerciseService) CreateExercise(ctx context.Context, req *models.CreateExerciseForUserParams) (models.Exercise, error) {
 	args := m.Called(ctx, req)
-	return args.Error(0)
+	return args.Get(0).(models.Exercise), args.Error(1)
 }
 
 func (m *MockExerciseService) GetExercisesForUser(ctx context.Context, req *models.GetExerciseForUserParams) ([]models.Exercise, error) {
@@ -67,7 +67,8 @@ func TestCreateExercise_Success(t *testing.T) {
 		Description:  "Chest exercise",
 		TargetMuscle: "Chest",
 	}
-	mockSvc.On("CreateExercise", mock.Anything, params).Return(nil)
+	expectedExercise := models.Exercise{ID: 1, Name: "Bench", Description: "Chest exercise", TargetMuscle: "Chest"}
+	mockSvc.On("CreateExercise", mock.Anything, params).Return(expectedExercise, nil)
 
 	router := setupRouterWithUserID(mockSvc, userID)
 	body, _ := json.Marshal(reqBody)
@@ -77,6 +78,7 @@ func TestCreateExercise_Success(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), `"Bench"`)
 	mockSvc.AssertExpectations(t)
 }
 
@@ -131,7 +133,7 @@ func TestCreateExercise_ServiceError(t *testing.T) {
 		Description:  "Chest exercise",
 		TargetMuscle: "Chest",
 	}
-	mockSvc.On("CreateExercise", mock.Anything, params).Return(errors.New("fail"))
+	mockSvc.On("CreateExercise", mock.Anything, params).Return(models.Exercise{}, errors.New("fail"))
 
 	router := setupRouterWithUserID(mockSvc, userID)
 	body, _ := json.Marshal(reqBody)
@@ -163,11 +165,11 @@ func TestGetExerciseForUser_Success(t *testing.T) {
 	mockSvc.AssertExpectations(t)
 }
 
-func TestGetExerciseForUser_DefaultParams(t *testing.T) {
+func TestGetExerciseForUser_EmptyResult(t *testing.T) {
 	mockSvc := new(MockExerciseService)
 	userID := int64(42)
 	params := &models.GetExerciseForUserParams{UserID: userID, Offset: 0, Limit: 10}
-	resp := []models.Exercise{{ID: 2, Name: "Squat"}}
+	resp := []models.Exercise{}
 	mockSvc.On("GetExercisesForUser", mock.Anything, params).Return(resp, nil)
 
 	router := setupRouterWithUserID(mockSvc, userID)
@@ -176,7 +178,7 @@ func TestGetExerciseForUser_DefaultParams(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "Squat")
+	assert.Contains(t, w.Body.String(), `"exercises":[]`)
 	mockSvc.AssertExpectations(t)
 }
 

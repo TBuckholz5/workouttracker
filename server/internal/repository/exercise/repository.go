@@ -74,7 +74,7 @@ func (r *Repository) GetExercisesForUser(ctx context.Context, params *GetExercis
 	}
 	defer rows.Close()
 
-	var exercises []serviceModels.Exercise
+	exercises := make([]serviceModels.Exercise, 0)
 	for rows.Next() {
 		var exercise exercise
 		err := rows.Scan(

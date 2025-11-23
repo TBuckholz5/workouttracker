@@ -8,7 +8,7 @@ import (
 )
 
 type ExerciseService interface {
-	CreateExercise(reqContext context.Context, params *models.CreateExerciseForUserParams) error
+	CreateExercise(reqContext context.Context, params *models.CreateExerciseForUserParams) (models.Exercise, error)
 	GetExercisesForUser(reqContext context.Context, params *models.GetExerciseForUserParams) ([]models.Exercise, error)
 }
 
@@ -22,15 +22,14 @@ func NewService(r repo.ExerciseRepository) *Service {
 	}
 }
 
-func (s *Service) CreateExercise(reqContext context.Context, dto *models.CreateExerciseForUserParams) error {
-	_, err := s.repo.CreateExercise(reqContext, &repo.CreateExerciseParams{
+func (s *Service) CreateExercise(reqContext context.Context, dto *models.CreateExerciseForUserParams) (models.Exercise, error) {
+	return s.repo.CreateExercise(reqContext, &repo.CreateExerciseParams{
 		Name:         dto.Name,
 		Description:  dto.Description,
 		TargetMuscle: dto.TargetMuscle,
 		PictureURL:   dto.PictureURL,
 		UserID:       dto.UserID,
 	})
-	return err
 }
 
 func (s *Service) GetExercisesForUser(reqContext context.Context, dto *models.GetExerciseForUserParams) ([]models.Exercise, error) {

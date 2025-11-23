@@ -32,14 +32,17 @@ func TestCreateExercise_Success(t *testing.T) {
 		Name:         "Bench Press",
 		Description:  "Chest exercise",
 		TargetMuscle: "Chest",
+		PictureURL:   "",
 	}
+	expected := models.Exercise{ID: 1, Name: req.Name, Description: req.Description, TargetMuscle: req.TargetMuscle}
 	mockRepo.On("CreateExercise", mock.Anything, mock.MatchedBy(func(p *repo.CreateExerciseParams) bool {
-		return p.Name == req.Name && p.Description == req.Description && p.TargetMuscle == req.TargetMuscle
-	})).Return(models.Exercise{ID: 1, Name: req.Name}, nil)
+		return p.Name == req.Name && p.Description == req.Description && p.TargetMuscle == req.TargetMuscle && p.UserID == req.UserID
+	})).Return(expected, nil)
 
 	svc := NewService(mockRepo)
-	err := svc.CreateExercise(context.Background(), req)
+	result, err := svc.CreateExercise(context.Background(), req)
 	assert.Nil(t, err)
+	assert.Equal(t, expected, result)
 	mockRepo.AssertNumberOfCalls(t, "CreateExercise", 1)
 }
 
@@ -50,12 +53,14 @@ func TestCreateExercise_RepoError(t *testing.T) {
 		Name:         "Bench Press",
 		Description:  "Chest exercise",
 		TargetMuscle: "Chest",
+		PictureURL:   "",
 	}
 	mockRepo.On("CreateExercise", mock.Anything, mock.Anything).Return(models.Exercise{}, errors.New("db error"))
 
 	svc := NewService(mockRepo)
-	err := svc.CreateExercise(context.Background(), req)
+	result, err := svc.CreateExercise(context.Background(), req)
 	assert.NotNil(t, err)
+	assert.Equal(t, models.Exercise{}, result)
 	mockRepo.AssertNumberOfCalls(t, "CreateExercise", 1)
 }
 
@@ -75,6 +80,22 @@ func TestGetExercisesForUser_Success(t *testing.T) {
 	result, err := svc.GetExercisesForUser(context.Background(), req)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, result)
+	mockRepo.AssertNumberOfCalls(t, "GetExercisesForUser", 1)
+}
+
+func TestGetExercisesForUser_EmptyResult(t *testing.T) {
+	mockRepo := new(mockExerciseRepo)
+	req := &models.GetExerciseForUserParams{
+		UserID: 1,
+		Offset: 0,
+		Limit:  10,
+	}
+	mockRepo.On("GetExercisesForUser", mock.Anything, mock.Anything).Return([]models.Exercise{}, nil)
+
+	svc := NewService(mockRepo)
+	result, err := svc.GetExercisesForUser(context.Background(), req)
+	assert.Nil(t, err)
+	assert.Equal(t, []models.Exercise{}, result)
 	mockRepo.AssertNumberOfCalls(t, "GetExercisesForUser", 1)
 }
 

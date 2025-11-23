@@ -26,6 +26,29 @@ Future<Map<String, dynamic>> sendProtectedGetRequest(
   return jsonDecode(response.body);
 }
 
+Future<Map<String, dynamic>> sendProtectedPostRequest(
+  String url,
+  Map<String, dynamic> payload,
+) async {
+  String? token = await secureStorage.read(key: 'auth_token');
+  if (token == null) {
+    throw Exception('No auth token found in secure storage');
+  }
+  Map<String, String> headers = {
+    "Authorization": "Bearer $token",
+    "Content-Type": "application/json",
+  };
+  final response = await http.post(
+    Uri.parse(url),
+    headers: headers,
+    body: jsonEncode(payload),
+  );
+  if (response.statusCode != 200) {
+    throw Exception('Failed to get data: ${response.statusCode}');
+  }
+  return jsonDecode(response.body);
+}
+
 Future<Map<String, dynamic>> sendPostRequest(
   String endpoint,
   Map<String, dynamic> payload,
