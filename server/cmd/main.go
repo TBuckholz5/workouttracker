@@ -16,6 +16,9 @@ import (
 	userServ "github.com/TBuckholz5/workouttracker/internal/service/user"
 	"github.com/TBuckholz5/workouttracker/internal/util/hash"
 	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
+	workoutSessionApi "github.com/TBuckholz5/workouttracker/internal/workoutsession/api/v1"
+	workoutSessionRepo "github.com/TBuckholz5/workouttracker/internal/workoutsession/repository"
+	workoutSessionServ "github.com/TBuckholz5/workouttracker/internal/workoutsession/service"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -54,6 +57,7 @@ func main() {
 
 	// Start server.
 	jwtService := jwt.NewJwtService(jwtSecret)
+	authMiddleware := auth.AuthMiddleware(jwtService)
 	r := gin.Default()
 	userRepository := userRepo.NewRepository(pool)
 	userService := userServ.NewService(userRepository, hash.NewBcryptHasher(), jwtService)
@@ -63,7 +67,11 @@ func main() {
 	exerciseRepository := exerciseRepo.NewRepository(pool)
 	exerciseService := exerciseServ.NewService(exerciseRepository)
 	exerciseHandler := exerciseApi.NewHandler(exerciseService)
-	exerciseApi.RegisterExerciseRoutes(apiV1, exerciseHandler, auth.AuthMiddleware(jwtService))
+	exerciseApi.RegisterExerciseRoutes(apiV1, exerciseHandler, authMiddleware)
+	workoutSessionRepository := workoutSessionRepo.NewRepository(pool)
+	workoutSessionService := workoutSessionServ.NewService(workoutSessionRepository)
+	workoutSessionHandler := workoutSessionApi.NewHandler(workoutSessionService)
+	workoutSessionApi.RegisterWorkoutSessionRoutes(apiV1, workoutSessionHandler, authMiddleware)
 	if err := r.Run(fmt.Sprintf(":%d", config.ServerPort)); err != nil {
 		log.Fatal(err)
 	}
