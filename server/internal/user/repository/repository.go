@@ -1,16 +1,16 @@
-package user
+package repository
 
 import (
 	"context"
 	"fmt"
 
-	serviceModels "github.com/TBuckholz5/workouttracker/internal/service/user/models"
+	"github.com/TBuckholz5/workouttracker/internal/user/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, params *CreateUserParams) (serviceModels.User, error)
-	GetUserForUsername(ctx context.Context, username string) (serviceModels.User, error)
+	CreateUser(ctx context.Context, params *CreateUserParams) (models.User, error)
+	GetUserForUsername(ctx context.Context, username string) (models.User, error)
 }
 
 type Repository struct {
@@ -29,7 +29,7 @@ type CreateUserParams struct {
 	PwHash   string
 }
 
-func (r *Repository) CreateUser(ctx context.Context, params *CreateUserParams) (serviceModels.User, error) {
+func (r *Repository) CreateUser(ctx context.Context, params *CreateUserParams) (models.User, error) {
 	row := r.pool.QueryRow(ctx, createUser, params.Username, params.Email, params.PwHash)
 	var user user
 	err := row.Scan(
@@ -41,9 +41,9 @@ func (r *Repository) CreateUser(ctx context.Context, params *CreateUserParams) (
 		&user.updatedAt,
 	)
 	if err != nil {
-		return serviceModels.User{}, fmt.Errorf("could not create user: %w", err)
+		return models.User{}, fmt.Errorf("could not create user: %w", err)
 	}
-	return serviceModels.User{
+	return models.User{
 		ID:       user.id,
 		Username: user.username.String,
 		Email:    user.email.String,
@@ -51,7 +51,7 @@ func (r *Repository) CreateUser(ctx context.Context, params *CreateUserParams) (
 	}, nil
 }
 
-func (r *Repository) GetUserForUsername(ctx context.Context, username string) (serviceModels.User, error) {
+func (r *Repository) GetUserForUsername(ctx context.Context, username string) (models.User, error) {
 	row := r.pool.QueryRow(ctx, getUserByUsername, username)
 	var user user
 	err := row.Scan(
@@ -63,9 +63,9 @@ func (r *Repository) GetUserForUsername(ctx context.Context, username string) (s
 		&user.updatedAt,
 	)
 	if err != nil {
-		return serviceModels.User{}, fmt.Errorf("could not get user for username: %s", username)
+		return models.User{}, fmt.Errorf("could not get user for username: %s", username)
 	}
-	return serviceModels.User{
+	return models.User{
 		ID:       user.id,
 		Username: user.username.String,
 		Email:    user.email.String,

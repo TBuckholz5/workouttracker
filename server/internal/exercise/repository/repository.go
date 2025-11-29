@@ -1,10 +1,10 @@
-package exercise
+package repository
 
 import (
 	"context"
 	"fmt"
 
-	serviceModels "github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,8 +23,8 @@ type GetExerciseForUserParams struct {
 }
 
 type ExerciseRepository interface {
-	CreateExercise(ctx context.Context, params *CreateExerciseParams) (serviceModels.Exercise, error)
-	GetExercisesForUser(ctx context.Context, params *GetExerciseForUserParams) ([]serviceModels.Exercise, error)
+	CreateExercise(ctx context.Context, params *CreateExerciseParams) (models.Exercise, error)
+	GetExercisesForUser(ctx context.Context, params *GetExerciseForUserParams) ([]models.Exercise, error)
 }
 
 type Repository struct {
@@ -37,7 +37,7 @@ func NewRepository(pool *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) CreateExercise(ctx context.Context, params *CreateExerciseParams) (serviceModels.Exercise, error) {
+func (r *Repository) CreateExercise(ctx context.Context, params *CreateExerciseParams) (models.Exercise, error) {
 	var exercise exercise
 	err := r.pool.QueryRow(ctx, createExerciseQuery,
 		params.Name,
@@ -56,9 +56,9 @@ func (r *Repository) CreateExercise(ctx context.Context, params *CreateExerciseP
 		&exercise.userId,
 	)
 	if err != nil {
-		return serviceModels.Exercise{}, fmt.Errorf("error creating exercise: %w", err)
+		return models.Exercise{}, fmt.Errorf("error creating exercise: %w", err)
 	}
-	return serviceModels.Exercise{
+	return models.Exercise{
 		ID:           exercise.id,
 		Name:         exercise.name,
 		Description:  exercise.description,
@@ -67,14 +67,14 @@ func (r *Repository) CreateExercise(ctx context.Context, params *CreateExerciseP
 	}, nil
 }
 
-func (r *Repository) GetExercisesForUser(ctx context.Context, params *GetExerciseForUserParams) ([]serviceModels.Exercise, error) {
+func (r *Repository) GetExercisesForUser(ctx context.Context, params *GetExerciseForUserParams) ([]models.Exercise, error) {
 	rows, err := r.pool.Query(ctx, getExercisesForUserQuery, params.UserID, params.Limit, params.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching exercises for user: %w", err)
 	}
 	defer rows.Close()
 
-	exercises := make([]serviceModels.Exercise, 0)
+	exercises := make([]models.Exercise, 0)
 	for rows.Next() {
 		var exercise exercise
 		err := rows.Scan(
@@ -90,7 +90,7 @@ func (r *Repository) GetExercisesForUser(ctx context.Context, params *GetExercis
 		if err != nil {
 			return nil, fmt.Errorf("error scanning exercise row: %w", err)
 		}
-		exercises = append(exercises, serviceModels.Exercise{
+		exercises = append(exercises, models.Exercise{
 			ID:           exercise.id,
 			Name:         exercise.name,
 			Description:  exercise.description,

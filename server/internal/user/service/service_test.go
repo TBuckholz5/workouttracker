@@ -1,13 +1,13 @@
-package user
+package service
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
-	userRepo "github.com/TBuckholz5/workouttracker/internal/repository/user"
-	"github.com/TBuckholz5/workouttracker/internal/service/user/models"
+	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/user/models"
+	"github.com/TBuckholz5/workouttracker/internal/user/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -16,7 +16,7 @@ type mockUserRepo struct {
 	mock.Mock
 }
 
-func (m *mockUserRepo) CreateUser(ctx context.Context, params *userRepo.CreateUserParams) (models.User, error) {
+func (m *mockUserRepo) CreateUser(ctx context.Context, params *repository.CreateUserParams) (models.User, error) {
 	args := m.Called(ctx, params)
 	return args.Get(0).(models.User), args.Error(1)
 }
@@ -76,7 +76,7 @@ func TestCreateUser_Success(t *testing.T) {
 	}
 
 	repo.AssertNumberOfCalls(t, "CreateUser", 1)
-	repo.AssertCalled(t, "CreateUser", mock.Anything, mock.MatchedBy(func(arg *userRepo.CreateUserParams) bool {
+	repo.AssertCalled(t, "CreateUser", mock.Anything, mock.MatchedBy(func(arg *repository.CreateUserParams) bool {
 		return arg.Username == req.Username && arg.Email == req.Email && arg.PwHash == hashedPassword
 	}))
 }

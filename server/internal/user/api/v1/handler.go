@@ -1,16 +1,16 @@
-package user
+package v1
 
 import (
-	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
-	"github.com/TBuckholz5/workouttracker/internal/service/user"
+	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/user/service"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	service user.UserService
+	service service.UserService
 }
 
-func NewHandler(s user.UserService) *Handler {
+func NewHandler(s service.UserService) *Handler {
 	return &Handler{service: s}
 }
 

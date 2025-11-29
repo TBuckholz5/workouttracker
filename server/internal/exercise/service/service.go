@@ -1,10 +1,10 @@
-package exercise
+package service
 
 import (
 	"context"
 
-	repo "github.com/TBuckholz5/workouttracker/internal/repository/exercise"
-	"github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
+	repo "github.com/TBuckholz5/workouttracker/internal/exercise/repository"
 )
 
 type ExerciseService interface {

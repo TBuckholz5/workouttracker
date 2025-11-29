@@ -1,4 +1,4 @@
-package user
+package repository
 
 const createUser = `INSERT INTO users (username, email, pw_hash)
 VALUES ($1, $2, $3)

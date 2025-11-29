@@ -1,4 +1,4 @@
-package exercise
+package v1
 
 import (
 	"bytes"
@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"testing"
 
-	service "github.com/TBuckholz5/workouttracker/internal/service/exercise"
-	"github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

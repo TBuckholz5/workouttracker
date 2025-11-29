@@ -1,11 +1,11 @@
-package user
+package service
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/TBuckholz5/workouttracker/internal/api/v1/user/dto"
-	repo "github.com/TBuckholz5/workouttracker/internal/repository/user"
+	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/user/repository"
 	"github.com/TBuckholz5/workouttracker/internal/util/hash"
 	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
 )
@@ -16,12 +16,12 @@ type UserService interface {
 }
 
 type Service struct {
-	repo       repo.UserRepository
+	repo       repository.UserRepository
 	jwtService jwt.JwtService
 	hasher     hash.Hasher
 }
 
-func NewService(r repo.UserRepository, hasher hash.Hasher, jwtService jwt.JwtService) *Service {
+func NewService(r repository.UserRepository, hasher hash.Hasher, jwtService jwt.JwtService) *Service {
 	return &Service{
 		repo:       r,
 		hasher:     hasher,
@@ -34,7 +34,7 @@ func (s *Service) CreateUser(reqContext context.Context, userDto *dto.RegisterRe
 	if err != nil {
 		return err
 	}
-	_, err = s.repo.CreateUser(reqContext, &repo.CreateUserParams{
+	_, err = s.repo.CreateUser(reqContext, &repository.CreateUserParams{
 		Username: userDto.Username,
 		Email:    userDto.Email,
 		PwHash:   hashedPassword,

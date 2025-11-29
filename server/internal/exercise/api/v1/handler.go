@@ -1,11 +1,11 @@
-package exercise
+package v1
 
 import (
 	"strconv"
 
-	"github.com/TBuckholz5/workouttracker/internal/api/v1/exercise/dto"
-	service "github.com/TBuckholz5/workouttracker/internal/service/exercise"
-	serviceModel "github.com/TBuckholz5/workouttracker/internal/service/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/exercise/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +28,7 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "userID not found in context"})
 		return
 	}
-	params := serviceModel.CreateExerciseForUserParams{
+	params := models.CreateExerciseForUserParams{
 		UserID:       userID.(int64),
 		Name:         payload.Name,
 		Description:  payload.Description,
@@ -50,7 +50,7 @@ func (h *Handler) GetExerciseForUser(c *gin.Context) {
 	}
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	payload := serviceModel.GetExerciseForUserParams{
+	payload := models.GetExerciseForUserParams{
 		UserID: userID.(int64),
 		Offset: offset,
 		Limit:  limit,

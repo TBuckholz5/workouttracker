@@ -1,4 +1,4 @@
-package exercise
+package repository
 
 const createExerciseQuery = `INSERT INTO exercises (name, description, target_muscle, picture_url, user_id)
 	VALUES ($1, $2, $3, $4, $5)
