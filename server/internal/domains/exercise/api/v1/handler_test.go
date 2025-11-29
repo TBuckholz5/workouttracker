@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
-	"github.com/TBuckholz5/workouttracker/internal/exercise/service"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

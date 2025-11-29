@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

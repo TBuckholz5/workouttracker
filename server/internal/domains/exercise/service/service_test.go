@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
-	"github.com/TBuckholz5/workouttracker/internal/exercise/repository"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

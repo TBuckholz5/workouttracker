@@ -3,9 +3,9 @@ package v1
 import (
 	"strconv"
 
-	"github.com/TBuckholz5/workouttracker/internal/exercise/api/v1/dto"
-	"github.com/TBuckholz5/workouttracker/internal/exercise/models"
-	"github.com/TBuckholz5/workouttracker/internal/exercise/service"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/service"
 	"github.com/gin-gonic/gin"
 )
 

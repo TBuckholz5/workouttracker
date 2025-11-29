@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
-	"github.com/TBuckholz5/workouttracker/internal/user/models"
-	"github.com/TBuckholz5/workouttracker/internal/user/repository"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/repository"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

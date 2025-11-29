@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
-	"github.com/TBuckholz5/workouttracker/internal/user/service"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/service"
 	"github.com/gin-gonic/gin"
 )
 

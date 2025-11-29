@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TBuckholz5/workouttracker/internal/user/api/v1/dto"
-	"github.com/TBuckholz5/workouttracker/internal/user/repository"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/repository"
 	"github.com/TBuckholz5/workouttracker/internal/util/hash"
 	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
 )

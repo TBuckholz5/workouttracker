@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TBuckholz5/workouttracker/internal/user/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

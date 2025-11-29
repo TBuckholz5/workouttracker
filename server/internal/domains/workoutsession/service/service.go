@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/TBuckholz5/workouttracker/internal/workoutsession/models"
-	"github.com/TBuckholz5/workouttracker/internal/workoutsession/repository"
+	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/repository"
 )
 
 type WorkoutSessionService interface {

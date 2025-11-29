@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/TBuckholz5/workouttracker/internal/workoutsession/models"
-	"github.com/TBuckholz5/workouttracker/internal/workoutsession/service"
+	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/models"
+	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/service"
 	"github.com/gin-gonic/gin"
 )
 
