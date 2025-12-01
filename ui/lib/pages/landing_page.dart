@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
-import 'register_page.dart'; // Uncomment when you create RegisterPage
+import 'auth/login_page.dart';
+import 'auth/register_page.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});

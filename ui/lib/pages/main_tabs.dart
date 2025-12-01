@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'exercises_page.dart';
+import 'home/home_page.dart';
+import 'exercises/exercises_page.dart';
 
 class MainTabs extends StatefulWidget {
   const MainTabs({super.key});

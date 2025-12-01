@@ -1,51 +1,52 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
-import '../env.dart';
-import '../utils/api.dart' as api;
+import 'dart:async';
+import '../main_tabs.dart';
+import '../../env.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../utils/api.dart' as api;
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmController = TextEditingController();
   final apiUrl = Env.instance.apiUserUrl;
+  final storage = FlutterSecureStorage();
+
   bool _isLoading = false;
   String? _errorMessage;
 
-  Future<bool> _register(String email, String username, String password) async {
+  Future<bool> _authenticate(String username, String password) async {
     try {
-      api.sendPostRequest('$apiUrl/register', {
-        'email': email,
+      final response = await api.sendPostRequest('$apiUrl/login', {
         'username': username,
         'password': password,
       });
+      if (!response.containsKey('token')) {
+        return false;
+      }
+      // Store the token into secure storage.
+      await storage.write(key: 'auth_token', value: response['token']);
+
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  bool _isValidEmail(String email) {
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    return emailRegex.hasMatch(email);
-  }
-
-  Future<void> _onRegister() async {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
-      bool success = await _register(
-        _emailController.text,
+      bool success = await _authenticate(
         _usernameController.text,
         _passwordController.text,
       );
@@ -56,11 +57,11 @@ class _RegisterPageState extends State<RegisterPage> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => const MainTabs()),
         );
       } else {
         setState(() {
-          _errorMessage = 'Registration failed. Check your inputs.';
+          _errorMessage = 'Invalid username or password';
         });
       }
     }
@@ -68,17 +69,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
-    _confirmController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -101,36 +100,18 @@ class _RegisterPageState extends State<RegisterPage> {
                     value == null || value.isEmpty ? 'Enter username' : null,
               ),
               TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) => value == null || !_isValidEmail(value)
-                    ? 'Enter email'
-                    : null,
-              ),
-              TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
-                validator: (value) => value == null || value.length < 8
-                    ? 'Password must be at least 8 characters'
-                    : null,
-              ),
-              TextFormField(
-                controller: _confirmController,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm Password',
-                ),
-                obscureText: true,
-                validator: (value) => value != _passwordController.text
-                    ? 'Passwords do not match'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter password' : null,
               ),
               const SizedBox(height: 24),
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
-                      onPressed: _onRegister,
-                      child: const Text('Register'),
+                      onPressed: _login,
+                      child: const Text('Login'),
                     ),
             ],
           ),

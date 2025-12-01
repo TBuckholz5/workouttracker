@@ -3,6 +3,7 @@ class Env {
   final String _apiUrl = "http://localhost:8080/api/v1";
   final String _apiUserUrl = "/user";
   final String _apiExerciseUrl = "/exercise";
+  final String _apiWorkoutSessionUrl = "/workoutsession";
 
   Env._internal();
 
@@ -10,4 +11,5 @@ class Env {
 
   String get apiUserUrl => "$_apiUrl$_apiUserUrl";
   String get apiExerciseUrl => "$_apiUrl$_apiExerciseUrl";
+  String get apiWorkoutSessionUrl => "$_apiUrl$_apiWorkoutSessionUrl";
 }

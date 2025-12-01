@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../env.dart';
-import '../utils/api.dart' as api;
+import '../../env.dart';
+import '../../utils/api.dart' as api;
 
 class ExercisesPage extends StatefulWidget {
   const ExercisesPage({super.key});
