@@ -143,7 +143,7 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
       });
       setState(() {
         _exercises = (response['exercises'] as List)
-            .map((e) => Exercise(id: e['ID'], name: e['Name']))
+            .map((e) => Exercise(id: e['id'], name: e['name']))
             .toList();
       });
     } catch (e) {

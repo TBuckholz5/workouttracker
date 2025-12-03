@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
+	"github.com/TBuckholz5/workouttracker/internal/domains/user/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,11 +20,11 @@ type mockService struct {
 	authenticateErr   error
 }
 
-func (m *mockService) CreateUser(ctx context.Context, req *dto.RegisterRequest) error {
+func (m *mockService) CreateUser(ctx context.Context, req *service.RegisterParams) error {
 	return m.createUserErr
 }
 
-func (m *mockService) AuthenticateUser(ctx context.Context, req *dto.LoginRequest) (string, error) {
+func (m *mockService) AuthenticateUser(ctx context.Context, req *service.LoginParams) (string, error) {
 	return m.authenticateToken, m.authenticateErr
 }
 
@@ -41,7 +41,7 @@ func TestRegister_Success(t *testing.T) {
 	h := NewHandler(svc)
 	router := setupRouter(h)
 
-	payload := dto.RegisterRequest{Username: "test", Email: "test@gmail.com", Password: "passwordtest"}
+	payload := RegisterRequest{Username: "test", Email: "test@gmail.com", Password: "passwordtest"}
 	body, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -69,7 +69,7 @@ func TestRegister_ServiceError(t *testing.T) {
 	h := NewHandler(svc)
 	router := setupRouter(h)
 
-	payload := dto.RegisterRequest{Username: "test", Email: "test@gmail.com", Password: "passwordtest"}
+	payload := RegisterRequest{Username: "test", Email: "test@gmail.com", Password: "passwordtest"}
 	body, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -84,7 +84,7 @@ func TestLogin_Success(t *testing.T) {
 	h := NewHandler(svc)
 	router := setupRouter(h)
 
-	payload := dto.LoginRequest{Username: "test", Password: "pass"}
+	payload := LoginRequest{Username: "test", Password: "pass"}
 	body, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -113,7 +113,7 @@ func TestLogin_AuthError(t *testing.T) {
 	h := NewHandler(svc)
 	router := setupRouter(h)
 
-	payload := dto.LoginRequest{Username: "test", Password: "pass"}
+	payload := LoginRequest{Username: "test", Password: "pass"}
 	body, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")

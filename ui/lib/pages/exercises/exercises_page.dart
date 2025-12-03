@@ -82,9 +82,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
   ) async {
     try {
       final response = await api.sendProtectedPostRequest('$apiUrl/create', {
-        "Name": name,
-        "Description": description,
-        "TargetMuscle": muscleGroup,
+        "name": name,
+        "description": description,
+        "targetMuscle": muscleGroup,
       });
       setState(() {
         _items.add(response['exercise']);
@@ -199,8 +199,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
             }
             final item = _items[index];
             return ListTile(
-              title: Text(item['Name'] ?? ''),
-              subtitle: Text(item['TargetMuscle'] ?? ''),
+              title: Text(item['name'] ?? ''),
+              subtitle: Text(item['targetMuscle'] ?? ''),
             );
           },
         ),

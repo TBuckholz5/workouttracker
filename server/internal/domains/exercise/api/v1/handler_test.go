@@ -21,12 +21,12 @@ type MockExerciseService struct {
 	mock.Mock
 }
 
-func (m *MockExerciseService) CreateExercise(ctx context.Context, req *models.CreateExerciseForUserParams) (models.Exercise, error) {
+func (m *MockExerciseService) CreateExercise(ctx context.Context, req *service.CreateExerciseForUserParams) (models.Exercise, error) {
 	args := m.Called(ctx, req)
 	return args.Get(0).(models.Exercise), args.Error(1)
 }
 
-func (m *MockExerciseService) GetExercisesForUser(ctx context.Context, req *models.GetExerciseForUserParams) ([]models.Exercise, error) {
+func (m *MockExerciseService) GetExercisesForUser(ctx context.Context, req *service.GetExerciseForUserParams) ([]models.Exercise, error) {
 	args := m.Called(ctx, req)
 	return args.Get(0).([]models.Exercise), args.Error(1)
 }
@@ -61,7 +61,7 @@ func TestCreateExercise_Success(t *testing.T) {
 		"description":  "Chest exercise",
 		"targetMuscle": "Chest",
 	}
-	params := &models.CreateExerciseForUserParams{
+	params := &service.CreateExerciseForUserParams{
 		UserID:       userID,
 		Name:         "Bench",
 		Description:  "Chest exercise",
@@ -127,7 +127,7 @@ func TestCreateExercise_ServiceError(t *testing.T) {
 		"description":  "Chest exercise",
 		"targetMuscle": "Chest",
 	}
-	params := &models.CreateExerciseForUserParams{
+	params := &service.CreateExerciseForUserParams{
 		UserID:       userID,
 		Name:         "Bench",
 		Description:  "Chest exercise",
@@ -151,7 +151,7 @@ func TestGetExerciseForUser_Success(t *testing.T) {
 	userID := int64(42)
 	offset := 0
 	limit := 10
-	params := &models.GetExerciseForUserParams{UserID: userID, Offset: offset, Limit: limit}
+	params := &service.GetExerciseForUserParams{UserID: userID, Offset: offset, Limit: limit}
 	resp := []models.Exercise{{ID: 1, Name: "Bench"}}
 	mockSvc.On("GetExercisesForUser", mock.Anything, params).Return(resp, nil)
 
@@ -168,7 +168,7 @@ func TestGetExerciseForUser_Success(t *testing.T) {
 func TestGetExerciseForUser_EmptyResult(t *testing.T) {
 	mockSvc := new(MockExerciseService)
 	userID := int64(42)
-	params := &models.GetExerciseForUserParams{UserID: userID, Offset: 0, Limit: 10}
+	params := &service.GetExerciseForUserParams{UserID: userID, Offset: 0, Limit: 10}
 	resp := []models.Exercise{}
 	mockSvc.On("GetExercisesForUser", mock.Anything, params).Return(resp, nil)
 
@@ -187,7 +187,7 @@ func TestGetExerciseForUser_ServiceError(t *testing.T) {
 	userID := int64(42)
 	offset := 0
 	limit := 10
-	params := &models.GetExerciseForUserParams{UserID: userID, Offset: offset, Limit: limit}
+	params := &service.GetExerciseForUserParams{UserID: userID, Offset: offset, Limit: limit}
 	mockSvc.On("GetExercisesForUser", mock.Anything, params).Return([]models.Exercise{}, errors.New("unauthorized"))
 
 	router := setupRouterWithUserID(mockSvc, userID)

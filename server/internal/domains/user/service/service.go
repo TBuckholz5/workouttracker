@@ -4,15 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
 	"github.com/TBuckholz5/workouttracker/internal/domains/user/repository"
 	"github.com/TBuckholz5/workouttracker/internal/util/hash"
 	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
 )
 
 type UserService interface {
-	CreateUser(reqContext context.Context, userDto *dto.RegisterRequest) error
-	AuthenticateUser(reqContext context.Context, loginDto *dto.LoginRequest) (string, error)
+	CreateUser(reqContext context.Context, userDto *RegisterParams) error
+	AuthenticateUser(reqContext context.Context, loginDto *LoginParams) (string, error)
 }
 
 type Service struct {
@@ -29,7 +28,7 @@ func NewService(r repository.UserRepository, hasher hash.Hasher, jwtService jwt.
 	}
 }
 
-func (s *Service) CreateUser(reqContext context.Context, userDto *dto.RegisterRequest) error {
+func (s *Service) CreateUser(reqContext context.Context, userDto *RegisterParams) error {
 	hashedPassword, err := s.hasher.HashPassword(userDto.Password)
 	if err != nil {
 		return err
@@ -42,7 +41,7 @@ func (s *Service) CreateUser(reqContext context.Context, userDto *dto.RegisterRe
 	return err
 }
 
-func (s *Service) AuthenticateUser(reqContext context.Context, loginDto *dto.LoginRequest) (string, error) {
+func (s *Service) AuthenticateUser(reqContext context.Context, loginDto *LoginParams) (string, error) {
 	user, err := s.repo.GetUserForUsername(reqContext, loginDto.Username)
 	if err != nil {
 		return "", err

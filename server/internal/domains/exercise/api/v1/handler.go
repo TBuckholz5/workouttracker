@@ -3,8 +3,6 @@ package v1
 import (
 	"strconv"
 
-	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/api/v1/dto"
-	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/models"
 	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/service"
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +16,7 @@ func NewHandler(s service.ExerciseService) *Handler {
 }
 
 func (h *Handler) CreateExercise(c *gin.Context) {
-	var payload dto.CreateExerciseRequest
+	var payload CreateExerciseRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -28,7 +26,7 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 		c.JSON(500, gin.H{"error": "userID not found in context"})
 		return
 	}
-	params := models.CreateExerciseForUserParams{
+	params := service.CreateExerciseForUserParams{
 		UserID:       userID.(int64),
 		Name:         payload.Name,
 		Description:  payload.Description,
@@ -39,7 +37,15 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"exercise": exercise})
+	c.JSON(200, CreateExerciseResponse{
+		Exercise: Exercise{
+			ID:           exercise.ID,
+			Name:         exercise.Name,
+			Description:  exercise.Description,
+			TargetMuscle: exercise.TargetMuscle,
+			PictureURL:   exercise.PictureURL,
+		},
+	})
 }
 
 func (h *Handler) GetExerciseForUser(c *gin.Context) {
@@ -50,7 +56,7 @@ func (h *Handler) GetExerciseForUser(c *gin.Context) {
 	}
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	payload := models.GetExerciseForUserParams{
+	payload := service.GetExerciseForUserParams{
 		UserID: userID.(int64),
 		Offset: offset,
 		Limit:  limit,
@@ -60,5 +66,15 @@ func (h *Handler) GetExerciseForUser(c *gin.Context) {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"exercises": exercises})
+	exercisesDTO := []Exercise{}
+	for _, ex := range exercises {
+		exercisesDTO = append(exercisesDTO, Exercise{
+			ID:           ex.ID,
+			Name:         ex.Name,
+			Description:  ex.Description,
+			TargetMuscle: ex.TargetMuscle,
+			PictureURL:   ex.PictureURL,
+		})
+	}
+	c.JSON(200, GetExerciseListResponse{Exercises: exercisesDTO})
 }

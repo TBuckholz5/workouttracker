@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
 	"github.com/TBuckholz5/workouttracker/internal/domains/user/models"
 	"github.com/TBuckholz5/workouttracker/internal/domains/user/repository"
 	"github.com/stretchr/testify/assert"
@@ -65,7 +64,7 @@ func TestCreateUser_Success(t *testing.T) {
 	hasher.On("HashPassword", password).Return(hashedPassword, nil)
 
 	s := NewService(repo, hasher, nil)
-	req := &dto.RegisterRequest{
+	req := &RegisterParams{
 		Username: "testuser",
 		Email:    "test@example.com",
 		Password: password,
@@ -91,7 +90,7 @@ func TestCreateUser_HashError(t *testing.T) {
 	hasher.On("HashPassword", password).Return("", fmt.Errorf("hash error"))
 
 	s := NewService(repo, hasher, nil)
-	req := &dto.RegisterRequest{
+	req := &RegisterParams{
 		Username: "testuser",
 		Email:    "test@example.com",
 		Password: password,
@@ -122,7 +121,7 @@ func TestAuthenticateUser_Success(t *testing.T) {
 	jwtService.On("GenerateJwt", int64(1)).Return(tokenString, nil)
 
 	s := NewService(repo, hasher, jwtService)
-	req := &dto.LoginRequest{
+	req := &LoginParams{
 		Username: "testuser",
 		Password: password,
 	}
@@ -145,7 +144,7 @@ func TestAuthenticateUser_UserNotFound(t *testing.T) {
 	})).Return(models.User{}, fmt.Errorf("user not found"))
 
 	s := NewService(repo, nil, nil)
-	req := &dto.LoginRequest{
+	req := &LoginParams{
 		Username: "testuser",
 		Password: password,
 	}
@@ -171,7 +170,7 @@ func TestAuthenticateUser_PasswordMismatchError(t *testing.T) {
 	hasher.On("VerifyPassword", string(hashedPassword), password).Return(fmt.Errorf("passwords do not match"))
 
 	s := NewService(repo, hasher, nil)
-	req := &dto.LoginRequest{
+	req := &LoginParams{
 		Username: "testuser",
 		Password: password,
 	}
@@ -205,7 +204,7 @@ func TestAuthenticateUser_JwtError(t *testing.T) {
 	jwtService.On("GenerateJwt", int64(1)).Return("", fmt.Errorf("jwt generation error"))
 
 	s := NewService(repo, hasher, jwtService)
-	req := &dto.LoginRequest{
+	req := &LoginParams{
 		Username: "testuser",
 		Password: password,
 	}

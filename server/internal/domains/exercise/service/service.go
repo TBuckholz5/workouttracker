@@ -8,8 +8,8 @@ import (
 )
 
 type ExerciseService interface {
-	CreateExercise(reqContext context.Context, params *models.CreateExerciseForUserParams) (models.Exercise, error)
-	GetExercisesForUser(reqContext context.Context, params *models.GetExerciseForUserParams) ([]models.Exercise, error)
+	CreateExercise(reqContext context.Context, params *CreateExerciseForUserParams) (models.Exercise, error)
+	GetExercisesForUser(reqContext context.Context, params *GetExerciseForUserParams) ([]models.Exercise, error)
 }
 
 type Service struct {
@@ -22,21 +22,21 @@ func NewService(r repo.ExerciseRepository) *Service {
 	}
 }
 
-func (s *Service) CreateExercise(reqContext context.Context, dto *models.CreateExerciseForUserParams) (models.Exercise, error) {
+func (s *Service) CreateExercise(reqContext context.Context, params *CreateExerciseForUserParams) (models.Exercise, error) {
 	return s.repo.CreateExercise(reqContext, &repo.CreateExerciseParams{
-		Name:         dto.Name,
-		Description:  dto.Description,
-		TargetMuscle: dto.TargetMuscle,
-		PictureURL:   dto.PictureURL,
-		UserID:       dto.UserID,
+		Name:         params.Name,
+		Description:  params.Description,
+		TargetMuscle: params.TargetMuscle,
+		PictureURL:   params.PictureURL,
+		UserID:       params.UserID,
 	})
 }
 
-func (s *Service) GetExercisesForUser(reqContext context.Context, dto *models.GetExerciseForUserParams) ([]models.Exercise, error) {
+func (s *Service) GetExercisesForUser(reqContext context.Context, params *GetExerciseForUserParams) ([]models.Exercise, error) {
 	exercises, err := s.repo.GetExercisesForUser(reqContext, &repo.GetExerciseForUserParams{
-		UserID: dto.UserID,
-		Offset: dto.Offset,
-		Limit:  dto.Limit,
+		UserID: params.UserID,
+		Offset: params.Offset,
+		Limit:  params.Limit,
 	})
 	if err != nil {
 		return nil, err

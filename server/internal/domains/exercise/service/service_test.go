@@ -27,7 +27,7 @@ func (m *mockExerciserepository) GetExercisesForUser(ctx context.Context, params
 
 func TestCreateExercise_Success(t *testing.T) {
 	mockrepository := new(mockExerciserepository)
-	req := &models.CreateExerciseForUserParams{
+	req := &CreateExerciseForUserParams{
 		UserID:       1,
 		Name:         "Bench Press",
 		Description:  "Chest exercise",
@@ -48,7 +48,7 @@ func TestCreateExercise_Success(t *testing.T) {
 
 func TestCreateExercise_repositoryError(t *testing.T) {
 	mockrepository := new(mockExerciserepository)
-	req := &models.CreateExerciseForUserParams{
+	req := &CreateExerciseForUserParams{
 		UserID:       1,
 		Name:         "Bench Press",
 		Description:  "Chest exercise",
@@ -66,7 +66,7 @@ func TestCreateExercise_repositoryError(t *testing.T) {
 
 func TestGetExercisesForUser_Success(t *testing.T) {
 	mockrepository := new(mockExerciserepository)
-	req := &models.GetExerciseForUserParams{
+	req := &GetExerciseForUserParams{
 		UserID: 1,
 		Offset: 0,
 		Limit:  10,
@@ -85,7 +85,7 @@ func TestGetExercisesForUser_Success(t *testing.T) {
 
 func TestGetExercisesForUser_EmptyResult(t *testing.T) {
 	mockrepository := new(mockExerciserepository)
-	req := &models.GetExerciseForUserParams{
+	req := &GetExerciseForUserParams{
 		UserID: 1,
 		Offset: 0,
 		Limit:  10,
@@ -101,7 +101,7 @@ func TestGetExercisesForUser_EmptyResult(t *testing.T) {
 
 func TestGetExercisesForUser_repositoryError(t *testing.T) {
 	mockrepository := new(mockExerciserepository)
-	req := &models.GetExerciseForUserParams{
+	req := &GetExerciseForUserParams{
 		UserID: 1,
 		Offset: 0,
 		Limit:  10,

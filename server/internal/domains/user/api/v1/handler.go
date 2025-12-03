@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"github.com/TBuckholz5/workouttracker/internal/domains/user/api/v1/dto"
 	"github.com/TBuckholz5/workouttracker/internal/domains/user/service"
 	"github.com/gin-gonic/gin"
 )
@@ -15,24 +14,31 @@ func NewHandler(s service.UserService) *Handler {
 }
 
 func (h *Handler) Register(c *gin.Context) {
-	var payload dto.RegisterRequest
+	var payload RegisterRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	if err := h.service.CreateUser(c.Request.Context(), &payload); err != nil {
+	if err := h.service.CreateUser(c.Request.Context(), &service.RegisterParams{
+		Username: payload.Username,
+		Email:    payload.Email,
+		Password: payload.Password,
+	}); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 }
 
 func (h *Handler) Login(c *gin.Context) {
-	var payload dto.LoginRequest
+	var payload LoginRequest
 	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
-	token, err := h.service.AuthenticateUser(c.Request.Context(), &payload)
+	token, err := h.service.AuthenticateUser(c.Request.Context(), &service.LoginParams{
+		Username: payload.Username,
+		Password: payload.Password,
+	})
 	if err != nil {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
