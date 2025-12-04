@@ -1,6 +1,6 @@
 module github.com/TBuckholz5/workouttracker
 
-go 1.25.1
+go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.11.0
@@ -9,9 +9,7 @@ require (
 	github.com/spf13/viper v1.21.0
 )
 
-require (
-	github.com/stretchr/objx v0.5.2 // indirect
-)
+require github.com/stretchr/objx v0.5.2 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -5,24 +5,31 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24.0"
 
-    - name: Build
-      run: go build -v server/...
+      - name: Lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: ./server
 
-    - name: Test
-      run: go test -v server/...
+      - name: Build
+        working-directory: ./server
+        run: go build -v ./...
+
+      - name: Test
+        working-directory: ./server
+        run: go test -v ./...
