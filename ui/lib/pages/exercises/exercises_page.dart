@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ui/pages/models/models.dart';
 import '../../env.dart';
 import '../../utils/api.dart' as api;
 
@@ -18,12 +19,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
   int _offset = 0;
   final int _limit = 20;
   String? _error;
-  List<dynamic> _items = [];
+  List<Exercise> _items = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchItems();
+    _fetchExercises();
     _scrollController.addListener(_onScroll);
   }
 
@@ -33,61 +34,58 @@ class _ExercisesPageState extends State<ExercisesPage> {
         !_isFetchingMore &&
         _hasMore &&
         !_isLoading) {
-      _fetchMoreItems();
+      _fetchExercises(isLoadingMore: true);
     }
   }
 
-  Future<void> _fetchItems() async {
-    try {
-      final response = await api.sendProtectedGetRequest('$apiUrl/getForUser', {
-        'limit': '$_limit',
-        'offset': '$_offset',
-      });
-      setState(() {
-        _items = response['exercises'];
-        _isLoading = false;
-        _hasMore = (_items.length == _limit);
-      });
-    } catch (e) {
-      setState(() {
-        _error = 'Failed to load items';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _fetchMoreItems() async {
-    setState(() => _isFetchingMore = true);
-    try {
+  Future<void> _fetchExercises({bool isLoadingMore = false}) async {
+    if (isLoadingMore) {
+      setState(() => _isFetchingMore = true);
       _offset += _limit;
+    } else {
+      setState(() => _isLoading = true);
+      _offset = 0;
+    }
+
+    try {
       final response = await api.sendProtectedGetRequest('$apiUrl/getForUser', {
         'limit': '$_limit',
         'offset': '$_offset',
       });
-      final newItems = response['exercises'] as List<dynamic>;
+
+      final exercises = response['exercises']
+          .map<Exercise>((item) => Exercise.fromJson(item))
+          .toList();
+
       setState(() {
-        _items.addAll(newItems);
-        _hasMore = (newItems.length == _limit);
-        _isFetchingMore = false;
+        if (isLoadingMore) {
+          _isFetchingMore = false;
+        } else {
+          _isLoading = false;
+        }
+        _items.addAll(exercises);
+        _hasMore = (exercises.length == _limit);
       });
     } catch (e) {
-      setState(() => _isFetchingMore = false);
+      setState(() {
+        if (isLoadingMore) {
+          _isFetchingMore = false;
+        } else {
+          _error = 'Failed to load items';
+          _isLoading = false;
+        }
+      });
     }
   }
 
-  Future<void> _addExercise(
-    String name,
-    String description,
-    String muscleGroup,
-  ) async {
+  Future<void> _addExercise(Exercise exercise) async {
     try {
-      final response = await api.sendProtectedPostRequest('$apiUrl/create', {
-        "name": name,
-        "description": description,
-        "targetMuscle": muscleGroup,
-      });
+      final response = await api.sendProtectedPostRequest(
+        '$apiUrl/create',
+        exercise.toJson(),
+      );
       setState(() {
-        _items.add(response['exercise']);
+        _items.add(Exercise.fromJson(response['exercise']));
       });
     } catch (e) {
       // TODO: Handle with error modal.
@@ -164,7 +162,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     ElevatedButton(
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
-                          _addExercise(name, description, muscleGroup);
+                          _addExercise(
+                            Exercise(
+                              name: name,
+                              description: description,
+                              muscleGroup: muscleGroup,
+                            ),
+                          );
                           Navigator.of(context).pop();
                         }
                       },
@@ -183,7 +187,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
               _hasMore &&
               scrollInfo.metrics.pixels >=
                   scrollInfo.metrics.maxScrollExtent - 200) {
-            _fetchMoreItems();
+            _fetchExercises(isLoadingMore: true);
           }
           return false;
         },
@@ -199,8 +203,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
             }
             final item = _items[index];
             return ListTile(
-              title: Text(item['name'] ?? ''),
-              subtitle: Text(item['targetMuscle'] ?? ''),
+              title: Text(item.name ?? ''),
+              subtitle: Text(item.targetMuscle ?? ''),
             );
           },
         ),

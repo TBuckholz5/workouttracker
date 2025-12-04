@@ -1,58 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:ui/pages/models/models.dart';
 import '../../utils/api.dart' as api;
 import '../../env.dart';
-
-class Workout {
-  final int _exerciseID;
-  final List<WorkoutSet> _sets;
-
-  Workout({required int exerciseID, required List<WorkoutSet> sets})
-    : _sets = sets,
-      _exerciseID = exerciseID;
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> res = {"exerciseID": _exerciseID, "sets": []};
-    for (WorkoutSet set in _sets) {
-      res["sets"].add(set.toJson());
-    }
-    return res;
-  }
-}
-
-class WorkoutSet {
-  final int _reps;
-  final double _weight;
-  final String _type;
-  final int _order;
-
-  WorkoutSet({
-    required int reps,
-    required double weight,
-    required String type,
-    required int order,
-  }) : _order = order,
-       _type = type,
-       _weight = weight,
-       _reps = reps;
-
-  Map<String, dynamic> toJson() {
-    return {
-      "reps": _reps,
-      "weight": _weight,
-      "set_type": _type,
-      "set_order": _order,
-    };
-  }
-}
-
-class Exercise {
-  int id;
-  String name;
-
-  Exercise({required this.id, required this.name});
-}
 
 class ActiveWorkoutPage extends StatefulWidget {
   const ActiveWorkoutPage({super.key});
@@ -153,12 +104,12 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
 
   void _addSet(int i) {
     setState(() {
-      _workouts[i]._sets.add(
+      _workouts[i].sets.add(
         WorkoutSet(
           reps: 0,
           weight: 0,
           type: 'normal',
-          order: _workouts[i]._sets.length + 1,
+          order: _workouts[i].sets.length + 1,
         ),
       );
     });
@@ -229,7 +180,7 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
                     itemBuilder: (context, index) {
                       final exercise = _exercises[index];
                       return ListTile(
-                        title: Text(exercise.name),
+                        title: Text(exercise.name ?? 'Unnamed Exercise'),
                         onTap: () {
                           _addWorkout(exercise.id);
                           Navigator.pop(context);
@@ -247,7 +198,8 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
     );
   }
 
-  void _addWorkout(int exerciseId) {
+  void _addWorkout(int? exerciseId) {
+    if (exerciseId == null) return;
     setState(() {
       _workouts.add(
         Workout(
@@ -259,11 +211,9 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
   }
 
   void _showEditSetModal(int workoutIndex, int setIndex) {
-    final set = _workouts[workoutIndex]._sets[setIndex];
-    final repsController = TextEditingController(text: set._reps.toString());
-    final weightController = TextEditingController(
-      text: set._weight.toString(),
-    );
+    final set = _workouts[workoutIndex].sets[setIndex];
+    final repsController = TextEditingController(text: set.reps.toString());
+    final weightController = TextEditingController(text: set.weight.toString());
 
     showDialog(
       context: context,
@@ -299,16 +249,16 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                final newReps = int.tryParse(repsController.text) ?? set._reps;
+                final newReps = int.tryParse(repsController.text) ?? set.reps;
                 final newWeight =
-                    double.tryParse(weightController.text) ?? set._weight;
+                    double.tryParse(weightController.text) ?? set.weight;
 
                 setState(() {
-                  _workouts[workoutIndex]._sets[setIndex] = WorkoutSet(
+                  _workouts[workoutIndex].sets[setIndex] = WorkoutSet(
                     reps: newReps,
                     weight: newWeight,
-                    type: set._type,
-                    order: set._order,
+                    type: set.type,
+                    order: set.order,
                   );
                 });
 
@@ -396,7 +346,7 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
     // TODO: Handle case where exercise is not found.
     final exerciseName = _exercises
         .firstWhere(
-          (ex) => ex.id == workout._exerciseID,
+          (ex) => ex.id == workout.exerciseID,
           orElse: () => Exercise(id: 0, name: 'Unknown'),
         )
         .name;
@@ -409,12 +359,12 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              exerciseName,
+              exerciseName ?? 'Unnamed Exercise',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            ...List.generate(workout._sets.length, (setIndex) {
-              final set = workout._sets[setIndex];
+            ...List.generate(workout.sets.length, (setIndex) {
+              final set = workout.sets[setIndex];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
@@ -422,7 +372,7 @@ class _ActiveWorkoutPageState extends State<ActiveWorkoutPage> {
                     Text('Set ${setIndex + 1}:'),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: Text('${set._reps} reps @ ${set._weight} lbs'),
+                      child: Text('${set.reps} reps @ ${set.weight} lbs'),
                     ),
                     IconButton(
                       onPressed: () =>
