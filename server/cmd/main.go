@@ -33,8 +33,8 @@ func main() {
 	}
 
 	// Connect to database.
-	pool, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s@%s:%d/%s?sslmode=disable",
-		config.DBUser, config.DBHost, config.DBPort, config.DBName))
+	pool, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName, config.SslMode))
 	if err != nil {
 		log.Fatal(err)
 	}

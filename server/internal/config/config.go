@@ -8,31 +8,42 @@ import (
 
 type Config struct {
 	ServerPort int
+	ServerHost string
 	DBUser     string
 	DBPort     int
 	DBName     string
 	DBHost     string
+	DBPassword string
+	SslMode    string
 }
 
 func LoadConfig() (*Config, error) {
-	viper.SetConfigName("env")
-	viper.SetConfigType("toml")
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
 	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("fatal error config file: %w", err))
 	}
-	serverPort := viper.GetInt("server.port")
-	dbUser := viper.GetString("database.user")
-	dbPort := viper.GetInt("database.port")
-	dbName := viper.GetString("database.name")
-	dbHost := viper.GetString("database.host")
+	serverPort := viper.GetInt("SERVER_PORT")
+	serverHost := viper.GetString("SERVER_HOST")
+
+	databasePort := viper.GetInt("DATABASE_PORT")
+	databaseUser := viper.GetString("DATABASE_USER")
+	databaseName := viper.GetString("DATABASE_NAME")
+	databaseHost := viper.GetString("DATABASE_HOST")
+	databasePassword := viper.GetString("DATABASE_PASSWORD")
+	databaseSslMode := viper.GetString("DATABASE_SSLMODE")
 
 	return &Config{
 		ServerPort: serverPort,
-		DBUser:     dbUser,
-		DBPort:     dbPort,
-		DBName:     dbName,
-		DBHost:     dbHost,
+		ServerHost: serverHost,
+		DBUser:     databaseUser,
+		DBPort:     databasePort,
+		DBName:     databaseName,
+		DBHost:     databaseHost,
+		DBPassword: databasePassword,
+		SslMode:    databaseSslMode,
 	}, nil
 }
