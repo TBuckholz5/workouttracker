@@ -18,13 +18,24 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
+	viper.SetDefault("SERVER_PORT", 8080)
+	viper.SetDefault("SERVER_HOST", "0.0.0.0")
+	viper.SetDefault("DATABASE_PORT", 5432)
+	viper.SetDefault("DATABASE_HOST", "localhost")
+	viper.SetDefault("DATABASE_SSLMODE", "disable")
+
+	viper.AutomaticEnv()
+
 	viper.SetConfigName(".env")
 	viper.SetConfigType("env")
 	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Println("No .env file found, using environment variables")
+		} else {
+			return nil, err
+		}
 	}
 	serverPort := viper.GetInt("SERVER_PORT")
 	serverHost := viper.GetString("SERVER_HOST")
