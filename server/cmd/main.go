@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/TBuckholz5/workouttracker/internal/config"
 	exerciseApi "github.com/TBuckholz5/workouttracker/internal/domains/exercise/api/v1"
@@ -16,10 +17,12 @@ import (
 	workoutSessionApi "github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/api/v1"
 	workoutSessionRepo "github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/repository"
 	workoutSessionServ "github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/service"
-	"github.com/TBuckholz5/workouttracker/internal/middleware/auth"
+	"github.com/TBuckholz5/workouttracker/internal/routing"
+	"github.com/TBuckholz5/workouttracker/internal/routing/middleware"
+	"github.com/TBuckholz5/workouttracker/internal/routing/middleware/auth"
+	"github.com/TBuckholz5/workouttracker/internal/routing/middleware/logging"
 	"github.com/TBuckholz5/workouttracker/internal/util/hash"
 	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -55,24 +58,80 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Start server.
+	// Define dependencies.
 	jwtService := jwt.NewJwtService(jwtSecret)
-	authMiddleware := auth.AuthMiddleware(jwtService)
-	r := gin.Default()
+	authMiddleware := auth.NewAuthMiddleware(jwtService)
+	loggingMiddleware := logging.NewLoggingMiddleware()
+
 	userRepository := userRepo.NewRepository(pool)
 	userService := userServ.NewService(userRepository, hash.NewBcryptHasher(), jwtService)
 	userHandler := userApi.NewHandler(userService)
-	apiV1 := r.Group("/api/v1")
-	userApi.RegisterUserRoutes(apiV1, userHandler)
+
+	// Register routes.
+	mux := http.NewServeMux()
+
+	apiMux := routing.RegisterRouterGroup(routing.Config{
+		Mux:         mux,
+		Middlewares: []middleware.Middleware{loggingMiddleware},
+		GroupRoute:  "/api/v1/",
+	})
+
+	userMux := routing.RegisterRouterGroup(routing.Config{
+		Mux:        apiMux,
+		GroupRoute: "/user/",
+	})
+	routing.RegisterRoute(routing.Config{
+		Mux:     userMux,
+		Handler: http.HandlerFunc(userHandler.Register),
+		Route:   "/register",
+		Method:  "POST",
+	})
+	routing.RegisterRoute(routing.Config{
+		Mux:     userMux,
+		Handler: http.HandlerFunc(userHandler.Login),
+		Route:   "/login",
+		Method:  "POST",
+	})
+
 	exerciseRepository := exerciseRepo.NewRepository(pool)
 	exerciseService := exerciseServ.NewService(exerciseRepository)
 	exerciseHandler := exerciseApi.NewHandler(exerciseService)
-	exerciseApi.RegisterExerciseRoutes(apiV1, exerciseHandler, authMiddleware)
+	exerciseMux := routing.RegisterRouterGroup(routing.Config{
+		Mux:         apiMux,
+		Middlewares: []middleware.Middleware{loggingMiddleware, authMiddleware},
+		GroupRoute:  "/exercise/",
+	})
+	routing.RegisterRoute(routing.Config{
+		Mux:     exerciseMux,
+		Handler: http.HandlerFunc(exerciseHandler.CreateExercise),
+		Route:   "/create",
+		Method:  "POST",
+	})
+	routing.RegisterRoute(routing.Config{
+		Mux:     exerciseMux,
+		Handler: http.HandlerFunc(exerciseHandler.GetExerciseForUser),
+		Route:   "/getForUser",
+		Method:  "GET",
+	})
+
 	workoutSessionRepository := workoutSessionRepo.NewRepository(pool)
 	workoutSessionService := workoutSessionServ.NewService(workoutSessionRepository)
 	workoutSessionHandler := workoutSessionApi.NewHandler(workoutSessionService)
-	workoutSessionApi.RegisterWorkoutSessionRoutes(apiV1, workoutSessionHandler, authMiddleware)
-	if err := r.Run(fmt.Sprintf(":%d", config.ServerPort)); err != nil {
+	workoutSessionMux := routing.RegisterRouterGroup(routing.Config{
+		Mux:         apiMux,
+		Middlewares: []middleware.Middleware{loggingMiddleware, authMiddleware},
+		GroupRoute:  "/workoutsession/",
+	})
+	routing.RegisterRoute(routing.Config{
+		Mux:     workoutSessionMux,
+		Handler: http.HandlerFunc(workoutSessionHandler.Create),
+		Route:   "/create",
+		Method:  "POST",
+	})
+
+	// Start server.
+	fmt.Println("Starting server on port", config.ServerPort)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.ServerPort), mux); err != nil {
 		log.Fatal(err)
 	}
 }

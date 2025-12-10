@@ -1,8 +1,10 @@
 package v1
 
 import (
+	"encoding/json"
+	"net/http"
+
 	"github.com/TBuckholz5/workouttracker/internal/domains/user/service"
-	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -13,35 +15,40 @@ func NewHandler(s service.UserService) *Handler {
 	return &Handler{service: s}
 }
 
-func (h *Handler) Register(c *gin.Context) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if err := h.service.CreateUser(c.Request.Context(), &service.RegisterParams{
+	if err := h.service.CreateUser(r.Context(), &service.RegisterParams{
 		Username: payload.Username,
 		Email:    payload.Email,
 		Password: payload.Password,
 	}); err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 }
 
-func (h *Handler) Login(c *gin.Context) {
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var payload LoginRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	token, err := h.service.AuthenticateUser(c.Request.Context(), &service.LoginParams{
+	token, err := h.service.AuthenticateUser(r.Context(), &service.LoginParams{
 		Username: payload.Username,
 		Password: payload.Password,
 	})
 	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	c.JSON(200, gin.H{"token": token})
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(LoginResponse{Token: token}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

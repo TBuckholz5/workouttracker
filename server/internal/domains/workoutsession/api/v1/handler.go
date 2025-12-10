@@ -1,9 +1,11 @@
 package v1
 
 import (
+	"encoding/json"
+	"net/http"
+
 	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/models"
 	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/service"
-	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -14,22 +16,27 @@ func NewHandler(s service.WorkoutSessionService) *Handler {
 	return &Handler{service: s}
 }
 
-func (h *Handler) Create(c *gin.Context) {
+func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var payload models.WorkoutSession
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(500, gin.H{"error": "userID not found in context"})
+	userID := r.Context().Value("userID")
+	if userID == nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	payload.UserID = userID.(int64)
-	session, err := h.service.Create(c.Request.Context(), &payload)
+	session, err := h.service.Create(r.Context(), &payload)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	c.JSON(200, gin.H{"session": session})
+	if err := json.NewEncoder(w).Encode(CreateWorkoutSessionResponse{
+		Session: *session,
+	}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

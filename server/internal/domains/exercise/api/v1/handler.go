@@ -1,10 +1,11 @@
 package v1
 
 import (
+	"encoding/json"
+	"net/http"
 	"strconv"
 
 	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/service"
-	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -15,15 +16,15 @@ func NewHandler(s service.ExerciseService) *Handler {
 	return &Handler{service: s}
 }
 
-func (h *Handler) CreateExercise(c *gin.Context) {
+func (h *Handler) CreateExercise(w http.ResponseWriter, r *http.Request) {
 	var payload CreateExerciseRequest
-	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(500, gin.H{"error": "userID not found in context"})
+	userID := r.Context().Value("userID")
+	if userID == nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	params := service.CreateExerciseForUserParams{
@@ -32,12 +33,12 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 		Description:  payload.Description,
 		TargetMuscle: payload.TargetMuscle,
 	}
-	exercise, err := h.service.CreateExercise(c.Request.Context(), &params)
+	exercise, err := h.service.CreateExercise(r.Context(), &params)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	c.JSON(200, CreateExerciseResponse{
+	if err := json.NewEncoder(w).Encode(CreateExerciseResponse{
 		Exercise: Exercise{
 			ID:           exercise.ID,
 			Name:         exercise.Name,
@@ -45,25 +46,45 @@ func (h *Handler) CreateExercise(c *gin.Context) {
 			TargetMuscle: exercise.TargetMuscle,
 			PictureURL:   exercise.PictureURL,
 		},
-	})
-}
-
-func (h *Handler) GetExerciseForUser(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(500, gin.H{"error": "userID not found in context"})
+	}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+}
+
+func (h *Handler) GetExerciseForUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value("userID")
+	if userID == nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	queryParams := r.URL.Query()
+	offset := 0
+	limit := 10
+	if val := queryParams.Get("offset"); val != "" {
+		parsedOffset, err := strconv.Atoi(val)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		offset = parsedOffset
+	}
+	if val := queryParams.Get("limit"); val != "" {
+		parsedLimit, err := strconv.Atoi(val)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		limit = parsedLimit
+	}
 	payload := service.GetExerciseForUserParams{
 		UserID: userID.(int64),
 		Offset: offset,
 		Limit:  limit,
 	}
-	exercises, err := h.service.GetExercisesForUser(c.Request.Context(), &payload)
+	exercises, err := h.service.GetExercisesForUser(r.Context(), &payload)
 	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	exercisesDTO := []Exercise{}
@@ -76,5 +97,7 @@ func (h *Handler) GetExerciseForUser(c *gin.Context) {
 			PictureURL:   ex.PictureURL,
 		})
 	}
-	c.JSON(200, GetExerciseListResponse{Exercises: exercisesDTO})
+	if err := json.NewEncoder(w).Encode(GetExerciseListResponse{Exercises: exercisesDTO}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
