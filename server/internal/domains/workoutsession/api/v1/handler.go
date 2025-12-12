@@ -6,6 +6,7 @@ import (
 
 	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/models"
 	"github.com/TBuckholz5/workouttracker/internal/domains/workoutsession/service"
+	"github.com/TBuckholz5/workouttracker/internal/routing/middleware/auth"
 )
 
 type Handler struct {
@@ -22,7 +23,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	userID := r.Context().Value("userID")
+	userID := r.Context().Value(auth.CtxKeyUserID)
 	if userID == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

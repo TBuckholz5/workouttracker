@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/TBuckholz5/workouttracker/internal/domains/exercise/service"
+	"github.com/TBuckholz5/workouttracker/internal/routing/middleware/auth"
 )
 
 type Handler struct {
@@ -22,7 +23,7 @@ func (h *Handler) CreateExercise(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	userID := r.Context().Value("userID")
+	userID := r.Context().Value(auth.CtxKeyUserID)
 	if userID == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -53,7 +54,7 @@ func (h *Handler) CreateExercise(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetExerciseForUser(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value("userID")
+	userID := r.Context().Value(auth.CtxKeyUserID)
 	if userID == nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

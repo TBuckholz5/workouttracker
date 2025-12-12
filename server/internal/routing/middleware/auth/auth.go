@@ -8,6 +8,12 @@ import (
 	"github.com/TBuckholz5/workouttracker/internal/util/jwt"
 )
 
+type ctxKey struct {
+	name string
+}
+
+var CtxKeyUserID = ctxKey{"userID"}
+
 type AuthMiddleware struct {
 	JwtService jwt.JwtService
 }
@@ -30,7 +36,7 @@ func (a *AuthMiddleware) Wrap(next http.Handler) http.Handler {
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		ctx := context.WithValue(r.Context(), CtxKeyUserID, userID)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)

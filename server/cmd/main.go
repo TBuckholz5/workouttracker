@@ -71,14 +71,14 @@ func main() {
 	mux := http.NewServeMux()
 
 	apiMux := routing.RegisterRouterGroup(routing.Config{
-		Mux:         mux,
-		Middlewares: []middleware.Middleware{loggingMiddleware},
-		GroupRoute:  "/api/v1/",
+		Mux:        mux,
+		GroupRoute: "/api/v1/",
 	})
 
 	userMux := routing.RegisterRouterGroup(routing.Config{
-		Mux:        apiMux,
-		GroupRoute: "/user/",
+		Mux:         apiMux,
+		Middlewares: []middleware.Middleware{loggingMiddleware},
+		GroupRoute:  "/user/",
 	})
 	routing.RegisterRoute(routing.Config{
 		Mux:     userMux,
