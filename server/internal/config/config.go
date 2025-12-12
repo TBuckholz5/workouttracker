@@ -9,6 +9,7 @@ import (
 type Config struct {
 	ServerPort int
 	ServerHost string
+	JWTSecret  string
 	DBUser     string
 	DBPort     int
 	DBName     string
@@ -39,6 +40,7 @@ func LoadConfig() (*Config, error) {
 	}
 	serverPort := viper.GetInt("SERVER_PORT")
 	serverHost := viper.GetString("SERVER_HOST")
+	jwtSecret := viper.GetString("JWT_SECRET")
 
 	databasePort := viper.GetInt("DATABASE_PORT")
 	databaseUser := viper.GetString("DATABASE_USER")
@@ -50,6 +52,7 @@ func LoadConfig() (*Config, error) {
 	return &Config{
 		ServerPort: serverPort,
 		ServerHost: serverHost,
+		JWTSecret:  jwtSecret,
 		DBUser:     databaseUser,
 		DBPort:     databasePort,
 		DBName:     databaseName,

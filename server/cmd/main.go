@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 	"log"
 	"net/http"
@@ -50,16 +49,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Generate JWT secret.
-	// TODO: Store in a better way than in memory - means server restarts will invalidate all tokens.
-	jwtSecret := make([]byte, 32)
-	_, err = rand.Read(jwtSecret)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Define dependencies.
-	jwtService := jwt.NewJwtService(jwtSecret)
+	jwtService := jwt.NewJwtService([]byte(config.JWTSecret))
 	authMiddleware := auth.NewAuthMiddleware(jwtService)
 	loggingMiddleware := logging.NewLoggingMiddleware()
 
